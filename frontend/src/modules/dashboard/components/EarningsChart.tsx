@@ -32,7 +32,7 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
           className="font-semibold tracking-[-0.02em]"
           style={{ fontSize: 17, color: "var(--neutral-30)" }}
         >
-          Earning over time
+          Activity
         </h3>
         <div className="flex items-center" style={{ gap: 8 }}>
           <button
@@ -83,11 +83,11 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
       <div className="flex items-center" style={{ gap: 16 }}>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--accent-blue)" }} />
-          Billable
+          Active
         </span>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--beige-40)" }} />
-          Non Billable
+          Inactive
         </span>
       </div>
 

@@ -67,7 +67,7 @@ export function MyTeam({ members, isLoading }: MyTeamProps) {
           className="font-semibold"
           style={{ fontSize: 15, color: "var(--neutral-30)" }}
         >
-          My team
+          Recent places
         </h3>
         <button
           type="button"
@@ -98,7 +98,7 @@ export function MyTeam({ members, isLoading }: MyTeamProps) {
         {!isLoading && (!members || members.length === 0) && (
           <div style={{ padding: "24px 20px", textAlign: "center" }}>
             <span style={{ fontSize: 14, color: "var(--neutral-10)" }}>
-              No team members
+              No recent places
             </span>
           </div>
         )}

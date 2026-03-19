@@ -107,7 +107,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
           className="font-semibold"
           style={{ fontSize: 15, color: "var(--neutral-30)" }}
         >
-          Ongoing
+          Popular places
         </span>
         <span
           className="flex items-center justify-center rounded-full font-semibold"
@@ -160,7 +160,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
           {!isLoading && (!projects || projects.length === 0) && (
             <div style={{ padding: "24px 22px", textAlign: "center" }}>
               <span style={{ fontSize: 14, color: "var(--neutral-10)" }}>
-                No ongoing projects
+                No popular places yet
               </span>
             </div>
           )}

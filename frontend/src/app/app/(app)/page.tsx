@@ -1,6 +1,6 @@
 "use client";
 
-import { HeroScreen } from "@/components/HeroScreen";
+import { useRouter } from "next/navigation";
 import { Questionnaire } from "@/components/Questionnaire";
 import { PipelineProgress } from "@/components/PipelineProgress";
 import { ResultsGrid } from "@/components/ResultsGrid";
@@ -53,6 +53,7 @@ function LoadingScreen({ onCancel }: { onCancel: () => void }) {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default function AppPage() {
+  const router = useRouter();
   const appState = useLocationIQStore((s) => s.appState);
   const setAppState = useLocationIQStore((s) => s.setAppState);
   const resetSearch = useLocationIQStore((s) => s.resetSearch);
@@ -102,14 +103,9 @@ export default function AppPage() {
 
       <div className="flex flex-col" style={{ minHeight: "100dvh" }}>
 
-        {/* Idle — hero CTA */}
-        {appState === "idle" && (
-          <HeroScreen onStart={() => setAppState("form")} />
-        )}
-
-        {/* Form — questionnaire */}
-        {appState === "form" && (
-          <Questionnaire onBack={() => setAppState("idle")} />
+        {/* Idle / Form — questionnaire (no hero step) */}
+        {(appState === "idle" || appState === "form") && (
+          <Questionnaire onBack={() => router.push("/dashboard")} />
         )}
 
         {/* Loading — pipeline */}

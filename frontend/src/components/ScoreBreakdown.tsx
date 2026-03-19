@@ -1,7 +1,7 @@
 "use client";
 
 import type { ScoreBreakdown as ScoreBreakdownType } from "@/types";
-import { getSortedBreakdown, scoreToColor } from "@/lib/score-utils";
+import { getSortedBreakdown } from "@/lib/score-utils";
 
 interface ScoreBreakdownProps {
   breakdown: ScoreBreakdownType;
@@ -11,7 +11,7 @@ export function ScoreBreakdown({ breakdown }: ScoreBreakdownProps) {
   const factors = getSortedBreakdown(breakdown);
 
   return (
-    <div className="flex flex-col" style={{ gap: 8 }}>
+    <div className="flex flex-col" style={{ gap: 10 }}>
       {factors.map(({ key, label, score }) => (
         <div key={key} className="flex flex-col" style={{ gap: 4 }}>
           <div className="flex items-center justify-between">
@@ -23,21 +23,21 @@ export function ScoreBreakdown({ breakdown }: ScoreBreakdownProps) {
             </span>
             <span
               className="text-[13px] font-semibold"
-              style={{ color: scoreToColor(score) }}
+              style={{ color: "var(--neutral-30)" }}
             >
-              {score}
+              {Math.round(score)}
             </span>
           </div>
           <div
             className="w-full rounded-full overflow-hidden"
-            style={{ height: 6, backgroundColor: "rgb(228,226,226)" }}
+            style={{ height: 5, backgroundColor: "var(--stroke)" }}
           >
             <div
               className="h-full rounded-full"
               style={{
                 width: `${score}%`,
-                backgroundColor: scoreToColor(score),
-                transition: "width 0.4s ease",
+                backgroundColor: "var(--neutral-30)",
+                transition: "width 0.3s ease",
               }}
             />
           </div>

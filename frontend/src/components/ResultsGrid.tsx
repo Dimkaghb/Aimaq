@@ -49,10 +49,7 @@ function SidebarCard({
 
   const [contactLoading, setContactLoading] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
-  const { top, low } = getScoreBadges(listing);
-
-  const rankColors = ["#16a34a", "#2563eb", "#d97706", "#7c3aed", "#64748b"];
-  const rankBg = rankColors[rank - 1] ?? "var(--neutral-30)";
+  const { top } = getScoreBadges(listing);
 
   async function handleContact(e: React.MouseEvent) {
     e.stopPropagation();
@@ -76,7 +73,7 @@ function SidebarCard({
       id={`card-${listing.listing_id}`}
       className="flex flex-col transition-all"
       style={{
-        backgroundColor: isActive ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.6)",
+        backgroundColor: isActive ? "rgba(255,255,255,0.98)" : "transparent",
         borderLeft: isActive ? "3px solid var(--neutral-30)" : "3px solid transparent",
         cursor: "pointer",
       }}
@@ -88,20 +85,32 @@ function SidebarCard({
       }}
       onMouseEnter={() => setActiveListingId(listing.listing_id)}
     >
-      <div style={{ padding: "14px 16px" }}>
-        {/* Top row: rank + district + score */}
-        <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-          <div className="flex items-center" style={{ gap: 8 }}>
-            <span
-              className="flex items-center justify-center rounded-full font-bold text-white flex-shrink-0"
-              style={{ width: 26, height: 26, backgroundColor: rankBg, fontSize: 12 }}
+      <div style={{ padding: "18px 20px" }}>
+        {/* Row: rank + address + score */}
+        <div className="flex items-start" style={{ gap: 12, marginBottom: 10 }}>
+          <span
+            className="flex items-center justify-center rounded-full font-semibold flex-shrink-0"
+            style={{
+              width: 24,
+              height: 24,
+              fontSize: 12,
+              color: "var(--neutral-10)",
+              backgroundColor: "var(--beige-20)",
+            }}
+          >
+            {rank}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p
+              className="leading-snug line-clamp-2"
+              style={{ fontSize: 14, color: "var(--neutral-30)", fontWeight: 500 }}
             >
-              {rank}
-            </span>
+              {listing.address}
+            </p>
             {listing.district && (
               <span
-                className="text-[11px] font-semibold uppercase tracking-[0.06em]"
-                style={{ color: "var(--neutral-10)" }}
+                className="text-[12px]"
+                style={{ color: "var(--neutral-10)", marginTop: 2, display: "block" }}
               >
                 {listing.district}
               </span>
@@ -110,81 +119,72 @@ function SidebarCard({
           <ScoreRing score={listing.total_score} size={40} strokeWidth={4} />
         </div>
 
-        {/* Address */}
-        <p
-          className="font-medium leading-snug line-clamp-2"
-          style={{ fontSize: 14, color: "var(--neutral-30)", marginBottom: 6 }}
-        >
-          {listing.address}
-        </p>
-
         {/* Price + area */}
-        <div className="flex items-center flex-wrap" style={{ gap: 6, marginBottom: 8 }}>
-          <span className="font-semibold" style={{ fontSize: 13, color: "var(--neutral-30)" }}>
+        <div className="flex items-baseline" style={{ gap: 8, marginBottom: 10 }}>
+          <span className="font-semibold" style={{ fontSize: 15, color: "var(--neutral-30)" }}>
             {listing.price_tenge != null ? formatPrice(listing.price_tenge) : "Цена не указана"}
           </span>
           {listing.area_sqm != null && (
-            <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
-              {formatArea(listing.area_sqm)}
+            <span style={{ fontSize: 13, color: "var(--neutral-10)" }}>
+              · {formatArea(listing.area_sqm)}
             </span>
           )}
         </div>
 
-        {/* Factor badges */}
-        <div className="flex flex-wrap" style={{ gap: 4 }}>
-          {top.map((b) => (
-            <span
-              key={b.label}
-              className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-              style={{ backgroundColor: "rgba(14,161,88,0.08)", color: "var(--accent-green)" }}
-            >
-              {b.label}
-            </span>
-          ))}
-          {low && (
-            <span
-              className="text-[11px] font-semibold rounded-full px-2 py-0.5"
-              style={{ backgroundColor: "rgba(207,141,19,0.08)", color: "var(--accent-yellow)" }}
-            >
-              {low.label}
-            </span>
-          )}
-        </div>
+        {/* Subtle factor hint */}
+        {top.length > 0 && (
+          <p style={{ fontSize: 12, color: "var(--neutral-10)", marginBottom: 10 }}>
+            {top.map((b) => b.label).join(" · ")}
+          </p>
+        )}
 
-        {/* Expand toggle */}
-        <div style={{ marginTop: 8 }} onClick={(e) => e.stopPropagation()}>
-          <button
-            type="button"
-            onClick={isExpanded ? onCollapse : onExpand}
-            className="text-[13px] font-medium"
-            style={{ color: "var(--neutral-10)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-          >
-            {isExpanded ? "Скрыть ↑" : "Подробнее ↓"}
-          </button>
-        </div>
+        {/* Expand */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            isExpanded ? onCollapse() : onExpand();
+          }}
+          className="text-[13px] font-medium"
+          style={{
+            color: "var(--neutral-10)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          {isExpanded ? "Свернуть" : "Подробнее"}
+        </button>
 
         {/* Expanded */}
         {isExpanded && (
           <div
             className="flex flex-col"
-            style={{ gap: 12, marginTop: 12, borderTop: "1px solid var(--stroke)", paddingTop: 12 }}
+            style={{ gap: 16, marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--stroke)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-wrap" style={{ gap: 6 }}>
               {listing.nearest_metro_name && (
-                <span className="text-[12px] font-medium rounded-full px-2.5 py-1"
-                  style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}>
+                <span
+                  className="text-[12px] rounded-md px-2 py-1"
+                  style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}
+                >
                   M {listing.nearest_metro_name}
-                  {listing.metro_distance_m != null && ` · ${Math.round(listing.metro_distance_m)}м`}
+                  {listing.metro_distance_m != null && ` ${Math.round(listing.metro_distance_m)} м`}
                 </span>
               )}
-              <span className="text-[12px] font-medium rounded-full px-2.5 py-1"
-                style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}>
-                {listing.bus_stops_nearby} остановок
+              <span
+                className="text-[12px] rounded-md px-2 py-1"
+                style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}
+              >
+                {listing.bus_stops_nearby} ост.
               </span>
-              <span className="text-[12px] font-medium rounded-full px-2.5 py-1"
-                style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}>
-                {listing.competitor_count} конкурентов
+              <span
+                className="text-[12px] rounded-md px-2 py-1"
+                style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}
+              >
+                {listing.competitor_count} конкур.
               </span>
             </div>
 
@@ -199,25 +199,32 @@ function SidebarCard({
                 type="button"
                 onClick={handleContact}
                 disabled={contactLoading}
-                className="w-full rounded-lg font-semibold transition-opacity"
+                className="w-full rounded-xl font-semibold transition-opacity"
                 style={{
-                  padding: "9px 12px", fontSize: 13,
-                  backgroundColor: "var(--neutral-30)", color: "#fff",
-                  border: "none", cursor: contactLoading ? "not-allowed" : "pointer",
+                  padding: "12px 16px",
+                  fontSize: 14,
+                  backgroundColor: "var(--neutral-30)",
+                  color: "#fff",
+                  border: "none",
+                  cursor: contactLoading ? "not-allowed" : "pointer",
                   opacity: contactLoading ? 0.7 : 1,
                 }}
               >
-                {contactLoading ? "Генерируем..." : "Написать арендодателю →"}
+                {contactLoading ? "Генерируем..." : "Написать арендодателю"}
               </button>
-              <div className="flex" style={{ gap: 6 }}>
+              <div className="flex" style={{ gap: 8 }}>
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); onShowOnMap(); }}
-                  className="flex-1 rounded-lg font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowOnMap();
+                  }}
+                  className="flex-1 rounded-lg font-medium py-2.5 text-[13px]"
                   style={{
-                    padding: "7px 8px", fontSize: 12,
-                    backgroundColor: "transparent", color: "var(--neutral-20)",
-                    border: "1.5px solid var(--stroke)", cursor: "pointer",
+                    backgroundColor: "transparent",
+                    color: "var(--neutral-20)",
+                    border: "1px solid var(--stroke)",
+                    cursor: "pointer",
                   }}
                 >
                   На карте
@@ -227,15 +234,16 @@ function SidebarCard({
                     href={listing.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 rounded-lg font-medium text-center"
+                    className="flex-1 rounded-lg font-medium py-2.5 text-[13px] text-center"
                     style={{
-                      padding: "7px 8px", fontSize: 12,
-                      backgroundColor: "var(--beige-10)", color: "var(--neutral-20)",
-                      border: "1.5px solid var(--stroke)", textDecoration: "none",
+                      backgroundColor: "var(--beige-10)",
+                      color: "var(--neutral-20)",
+                      border: "1px solid var(--stroke)",
+                      textDecoration: "none",
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    Объявление ↗
+                    Объявление
                   </a>
                 )}
               </div>
@@ -318,54 +326,35 @@ export function ResultsGrid({ onStartOver, explanation }: ResultsGridProps) {
           minWidth: 320,
           maxWidth: 400,
           borderLeft: "1px solid var(--stroke)",
-          backgroundColor: "rgba(244,241,238,0.5)",
+          backgroundColor: "rgba(249,248,248,0.95)",
         }}
       >
         {/* Sidebar header */}
         <div
-          className="flex-shrink-0 flex flex-col"
+          className="flex-shrink-0"
           style={{
-            padding: "16px 16px 12px",
+            padding: "20px 20px 16px",
             borderBottom: "1px solid var(--stroke)",
-            gap: 4,
           }}
         >
           <h2
             className="font-semibold tracking-tight"
-            style={{ fontSize: 16, color: "var(--neutral-30)" }}
+            style={{ fontSize: 15, color: "var(--neutral-30)" }}
           >
             Топ {listings.length} для {bizLabel}
           </h2>
-          <div className="flex items-center" style={{ gap: 10 }}>
-            {[
-              { color: "#16a34a", label: "≥ 70" },
-              { color: "#d97706", label: "45–69" },
-              { color: "#dc2626", label: "< 45" },
-            ].map((item) => (
-              <span
-                key={item.label}
-                className="flex items-center gap-1 text-[11px]"
-                style={{ color: "var(--neutral-10)" }}
-              >
-                <span className="rounded-full inline-block" style={{ width: 7, height: 7, backgroundColor: item.color }} />
-                {item.label}
-              </span>
-            ))}
-          </div>
         </div>
 
-        {/* AI explanation */}
+        {/* AI explanation — only when present */}
         {explanation && (
           <div
-            className="flex-shrink-0 flex items-start"
+            className="flex-shrink-0"
             style={{
-              padding: "12px 16px",
-              gap: 8,
+              padding: "12px 20px",
               borderBottom: "1px solid var(--stroke)",
-              backgroundColor: "rgba(207,141,19,0.05)",
+              backgroundColor: "rgba(255,255,255,0.5)",
             }}
           >
-            <span style={{ fontSize: 14, flexShrink: 0 }}>✦</span>
             <p className="leading-snug" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
               {explanation}
             </p>

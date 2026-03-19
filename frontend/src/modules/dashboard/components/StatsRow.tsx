@@ -1,43 +1,31 @@
-interface StatCard {
-  label: string;
-  value: string;
-  change: string;
-  positive: boolean;
-  iconBg: string;
-  icon: React.ReactNode;
+"use client";
+
+import type { DashboardStat } from "@/types/dashboard";
+
+interface StatsRowProps {
+  stats: DashboardStat[] | undefined;
+  isLoading: boolean;
 }
 
-const STATS: StatCard[] = [
-  {
-    label: "Total projects",
-    value: "455",
-    change: "+16.4%",
-    positive: true,
-    iconBg: "var(--beige-30)",
+const STAT_ICONS: Record<string, { bg: string; icon: React.ReactNode }> = {
+  total_projects: {
+    bg: "var(--beige-30)",
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
       </svg>
     ),
   },
-  {
-    label: "Active projects",
-    value: "55",
-    change: "-4.8%",
-    positive: false,
-    iconBg: "var(--beige-20)",
+  active_projects: {
+    bg: "var(--beige-20)",
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
       </svg>
     ),
   },
-  {
-    label: "Completed projects",
-    value: "400",
-    change: "+12.8%",
-    positive: true,
-    iconBg: "var(--beige-20)",
+  completed_projects: {
+    bg: "var(--beige-20)",
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -45,12 +33,8 @@ const STATS: StatCard[] = [
       </svg>
     ),
   },
-  {
-    label: "Total hours worked",
-    value: "600hrs",
-    change: "-1.2%",
-    positive: false,
-    iconBg: "var(--beige-20)",
+  total_hours: {
+    bg: "var(--beige-20)",
     icon: (
       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -58,65 +42,108 @@ const STATS: StatCard[] = [
       </svg>
     ),
   },
-];
+};
 
-export function StatsRow() {
+const DEFAULT_ICON = {
+  bg: "var(--beige-20)",
+  icon: (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+    </svg>
+  ),
+};
+
+function SkeletonCard() {
+  return (
+    <div
+      className="flex flex-col rounded-2xl animate-pulse"
+      style={{ backgroundColor: "rgba(255,255,255,0.72)", padding: "18px 20px", gap: 14 }}
+    >
+      <div className="flex items-center" style={{ gap: 10 }}>
+        <div className="rounded-lg" style={{ width: 34, height: 34, backgroundColor: "var(--beige-20)" }} />
+        <div className="rounded" style={{ width: 80, height: 14, backgroundColor: "var(--beige-20)" }} />
+      </div>
+      <div className="flex items-baseline justify-between">
+        <div className="rounded" style={{ width: 60, height: 32, backgroundColor: "var(--beige-20)" }} />
+        <div className="rounded" style={{ width: 40, height: 14, backgroundColor: "var(--beige-20)" }} />
+      </div>
+    </div>
+  );
+}
+
+export function StatsRow({ stats, isLoading }: StatsRowProps) {
+  if (isLoading || !stats) {
+    return (
+      <div
+        className="grid"
+        style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: 14, padding: "0 28px" }}
+      >
+        {Array.from({ length: 4 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div
       className="grid"
-      style={{ gridTemplateColumns: "repeat(4, 1fr)", gap: 14, padding: "0 28px" }}
+      style={{ gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, 1fr)`, gap: 14, padding: "0 28px" }}
     >
-      {STATS.map((stat) => (
-        <div
-          key={stat.label}
-          className="flex flex-col rounded-2xl"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.72)",
-            padding: "18px 20px",
-            gap: 14,
-          }}
-        >
-          {/* Top: icon + label */}
-          <div className="flex items-center" style={{ gap: 10 }}>
-            <span
-              className="flex items-center justify-center rounded-lg flex-shrink-0"
-              style={{
-                width: 34,
-                height: 34,
-                backgroundColor: stat.iconBg,
-                color: "var(--neutral-30)",
-              }}
-            >
-              {stat.icon}
-            </span>
-            <span
-              className="font-medium leading-snug"
-              style={{ fontSize: 13, color: "var(--neutral-10)" }}
-            >
-              {stat.label}
-            </span>
-          </div>
+      {stats.map((stat) => {
+        const visual = STAT_ICONS[stat.key] ?? DEFAULT_ICON;
+        const positive = stat.change_percent >= 0;
 
-          {/* Bottom: value + change */}
-          <div className="flex items-baseline justify-between">
-            <span
-              className="font-bold tracking-tight"
-              style={{ fontSize: 32, color: "var(--neutral-30)", lineHeight: 1 }}
-            >
-              {stat.value}
-            </span>
-            <span
-              className="font-semibold"
-              style={{
-                fontSize: 13,
-                color: stat.positive ? "var(--accent-green)" : "var(--accent-orange)",
-              }}
-            >
-              {stat.change}
-            </span>
+        return (
+          <div
+            key={stat.key}
+            className="flex flex-col rounded-2xl"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.72)",
+              padding: "18px 20px",
+              gap: 14,
+            }}
+          >
+            <div className="flex items-center" style={{ gap: 10 }}>
+              <span
+                className="flex items-center justify-center rounded-lg flex-shrink-0"
+                style={{
+                  width: 34,
+                  height: 34,
+                  backgroundColor: visual.bg,
+                  color: "var(--neutral-30)",
+                }}
+              >
+                {visual.icon}
+              </span>
+              <span
+                className="font-medium leading-snug"
+                style={{ fontSize: 13, color: "var(--neutral-10)" }}
+              >
+                {stat.label}
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span
+                className="font-bold tracking-tight"
+                style={{ fontSize: 32, color: "var(--neutral-30)", lineHeight: 1 }}
+              >
+                {stat.formatted_value}
+              </span>
+              <span
+                className="font-semibold"
+                style={{
+                  fontSize: 13,
+                  color: positive ? "var(--accent-green)" : "var(--accent-orange)",
+                }}
+              >
+                {positive ? "+" : ""}{stat.change_percent.toFixed(1)}%
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

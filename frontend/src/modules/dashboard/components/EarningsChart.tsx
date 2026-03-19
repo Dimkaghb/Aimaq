@@ -1,13 +1,21 @@
 "use client";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+import { useState } from "react";
+import type { EarningsMonth } from "@/types/dashboard";
 
-const BILLABLE =     [58, 42, 55, 50, 62, 68, 52, 45, 38, 30, 55, 20];
-const NON_BILLABLE = [10, 12,  8, 14, 10, 15, 12,  8, 10,  6, 10,  5];
+interface EarningsChartProps {
+  months: EarningsMonth[] | undefined;
+  isLoading: boolean;
+}
 
-const MAX_VAL = 80;
+export function EarningsChart({ months, isLoading }: EarningsChartProps) {
+  const [period, setPeriod] = useState<"month" | "week" | "year">("month");
 
-export function EarningsChart() {
+  const maxVal =
+    months && months.length > 0
+      ? Math.max(...months.map((m) => m.billable + m.non_billable), 1)
+      : 1;
+
   return (
     <div
       className="flex flex-col rounded-2xl"
@@ -29,6 +37,10 @@ export function EarningsChart() {
         <div className="flex items-center" style={{ gap: 8 }}>
           <button
             type="button"
+            onClick={() => {
+              const next = { month: "week", week: "year", year: "month" } as const;
+              setPeriod(next[period]);
+            }}
             className="flex items-center gap-1.5 rounded-full transition-colors hover:bg-black/5"
             style={{
               padding: "6px 14px",
@@ -38,9 +50,10 @@ export function EarningsChart() {
               border: "1.5px solid var(--stroke)",
               backgroundColor: "transparent",
               cursor: "pointer",
+              textTransform: "capitalize",
             }}
           >
-            Month
+            {period}
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -80,36 +93,57 @@ export function EarningsChart() {
 
       {/* Chart */}
       <div className="flex-1 flex items-end" style={{ gap: 0, minHeight: 180 }}>
-        {MONTHS.map((month, i) => {
-          const bH = (BILLABLE[i] / MAX_VAL) * 100;
-          const nbH = (NON_BILLABLE[i] / MAX_VAL) * 100;
-          return (
-            <div key={month} className="flex-1 flex flex-col items-center" style={{ gap: 6 }}>
+        {isLoading || !months ? (
+          [35, 50, 28, 45, 60, 42, 55, 30, 48, 38, 52, 25].map((h, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center" style={{ gap: 6 }}>
               <div className="flex flex-col items-center w-full" style={{ gap: 2, height: 160 }}>
                 <div className="flex-1" />
                 <div
-                  className="w-3/5 rounded-t-sm"
+                  className="w-3/5 rounded-t-sm animate-pulse"
                   style={{
-                    height: `${nbH}%`,
-                    backgroundColor: "var(--beige-40)",
-                    minHeight: nbH > 0 ? 3 : 0,
-                  }}
-                />
-                <div
-                  className="w-3/5 rounded-t-sm"
-                  style={{
-                    height: `${bH}%`,
-                    backgroundColor: "var(--accent-blue)",
-                    minHeight: bH > 0 ? 3 : 0,
+                    height: `${h}%`,
+                    backgroundColor: "var(--beige-20)",
                   }}
                 />
               </div>
-              <span style={{ fontSize: 11, color: "var(--neutral-10)" }}>
-                {month}
-              </span>
+              <div
+                className="rounded animate-pulse"
+                style={{ width: 20, height: 10, backgroundColor: "var(--beige-20)" }}
+              />
             </div>
-          );
-        })}
+          ))
+        ) : (
+          months.map((m) => {
+            const bH = (m.billable / maxVal) * 100;
+            const nbH = (m.non_billable / maxVal) * 100;
+            return (
+              <div key={m.month} className="flex-1 flex flex-col items-center" style={{ gap: 6 }}>
+                <div className="flex flex-col items-center w-full" style={{ gap: 2, height: 160 }}>
+                  <div className="flex-1" />
+                  <div
+                    className="w-3/5 rounded-t-sm"
+                    style={{
+                      height: `${nbH}%`,
+                      backgroundColor: "var(--beige-40)",
+                      minHeight: nbH > 0 ? 3 : 0,
+                    }}
+                  />
+                  <div
+                    className="w-3/5 rounded-t-sm"
+                    style={{
+                      height: `${bH}%`,
+                      backgroundColor: "var(--accent-blue)",
+                      minHeight: bH > 0 ? 3 : 0,
+                    }}
+                  />
+                </div>
+                <span style={{ fontSize: 11, color: "var(--neutral-10)" }}>
+                  {m.month}
+                </span>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

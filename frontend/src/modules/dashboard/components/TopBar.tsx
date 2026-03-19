@@ -1,4 +1,15 @@
-export function TopBar() {
+"use client";
+
+import type { UserProfile } from "@/types/dashboard";
+
+interface TopBarProps {
+  user: UserProfile | undefined;
+  isLoading: boolean;
+}
+
+export function TopBar({ user, isLoading }: TopBarProps) {
+  const displayName = user?.name ?? "there";
+
   return (
     <div
       className="flex items-center justify-between flex-shrink-0"
@@ -6,12 +17,19 @@ export function TopBar() {
     >
       {/* Greeting */}
       <div className="flex flex-col" style={{ gap: 2 }}>
-        <h1
-          className="font-semibold tracking-[-0.02em]"
-          style={{ fontSize: 22, color: "var(--neutral-30)" }}
-        >
-          Hello, Leonardo
-        </h1>
+        {isLoading ? (
+          <div
+            className="rounded-lg animate-pulse"
+            style={{ width: 180, height: 26, backgroundColor: "var(--beige-20)" }}
+          />
+        ) : (
+          <h1
+            className="font-semibold tracking-[-0.02em]"
+            style={{ fontSize: 22, color: "var(--neutral-30)" }}
+          >
+            Hello, {displayName}
+          </h1>
+        )}
         <p style={{ fontSize: 14, color: "var(--neutral-10)" }}>
           What are you working on?
         </p>
@@ -41,7 +59,6 @@ export function TopBar() {
 
       {/* Right actions */}
       <div className="flex items-center" style={{ gap: 8 }}>
-        {/* Icon buttons */}
         {[
           <svg key="copy" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="9" y="9" width="13" height="13" rx="2" />

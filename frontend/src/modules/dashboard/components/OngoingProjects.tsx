@@ -1,51 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import type { Project, ProjectPriority } from "@/types/dashboard";
 
-interface Project {
-  name: string;
-  clientIcon: string;
-  clientBg: string;
-  priority: "High" | "Medium" | "Low";
-  deadline: string;
-  teamCount: number;
-  dotColor: string;
+interface OngoingProjectsProps {
+  projects: Project[] | undefined;
+  isLoading: boolean;
 }
 
-const PROJECTS: Project[] = [
-  {
-    name: "Asana website audit",
-    clientIcon: "🎯",
-    clientBg: "#f5f5f5",
-    priority: "High",
-    deadline: "23 Aug, 2025",
-    teamCount: 3,
-    dotColor: "var(--accent-orange)",
-  },
-  {
-    name: "Marketing workshop",
-    clientIcon: "in",
-    clientBg: "#0077b5",
-    priority: "Medium",
-    deadline: "25 Aug, 2025",
-    teamCount: 2,
-    dotColor: "var(--accent-blue)",
-  },
-  {
-    name: "KYC verification app",
-    clientIcon: "⊞",
-    clientBg: "#7b68ee",
-    priority: "Low",
-    deadline: "29 Aug, 2025",
-    teamCount: 3,
-    dotColor: "var(--accent-green)",
-  },
-];
+const PRIORITY_STYLES: Record<ProjectPriority, { bg: string; color: string; dot: string }> = {
+  high:   { bg: "rgba(201,80,46,0.1)",   color: "var(--accent-orange)", dot: "var(--accent-orange)" },
+  medium: { bg: "rgba(207,141,19,0.1)",   color: "var(--accent-yellow)", dot: "var(--accent-yellow)" },
+  low:    { bg: "rgba(14,161,88,0.1)",    color: "var(--accent-green)",  dot: "var(--accent-green)" },
+};
 
-const PRIORITY_STYLES: Record<string, { bg: string; color: string; dot: string }> = {
-  High:   { bg: "rgba(201,80,46,0.1)",   color: "var(--accent-orange)", dot: "var(--accent-orange)" },
-  Medium: { bg: "rgba(207,141,19,0.1)",   color: "var(--accent-yellow)", dot: "var(--accent-yellow)" },
-  Low:    { bg: "rgba(14,161,88,0.1)",    color: "var(--accent-green)",  dot: "var(--accent-green)" },
+const PRIORITY_LABELS: Record<ProjectPriority, string> = {
+  high: "High",
+  medium: "Medium",
+  low: "Low",
 };
 
 function AvatarGroup({ count }: { count: number }) {
@@ -67,8 +39,36 @@ function AvatarGroup({ count }: { count: number }) {
   );
 }
 
-export function OngoingProjects() {
+function SkeletonRow() {
+  return (
+    <div
+      className="grid items-center animate-pulse"
+      style={{
+        gridTemplateColumns: "minmax(180px, 1fr) 70px 90px 120px 100px",
+        padding: "12px 22px",
+        gap: 12,
+        borderBottom: "1px solid var(--stroke)",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--beige-20)" }} />
+        <div className="rounded" style={{ width: 120, height: 14, backgroundColor: "var(--beige-20)" }} />
+      </div>
+      <div className="rounded-lg" style={{ width: 30, height: 30, backgroundColor: "var(--beige-20)" }} />
+      <div className="rounded-full" style={{ width: 60, height: 22, backgroundColor: "var(--beige-20)" }} />
+      <div className="rounded" style={{ width: 80, height: 14, backgroundColor: "var(--beige-20)" }} />
+      <div className="flex" style={{ gap: -8 }}>
+        {[0, 1].map((j) => (
+          <div key={j} className="rounded-full" style={{ width: 28, height: 28, backgroundColor: "var(--beige-20)" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const count = projects?.length ?? 0;
 
   return (
     <div
@@ -119,7 +119,7 @@ export function OngoingProjects() {
             color: "var(--neutral-10)",
           }}
         >
-          {PROJECTS.length}
+          {count}
         </span>
       </button>
 
@@ -147,12 +147,30 @@ export function OngoingProjects() {
             ))}
           </div>
 
+          {/* Loading */}
+          {isLoading && (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          )}
+
+          {/* Empty */}
+          {!isLoading && (!projects || projects.length === 0) && (
+            <div style={{ padding: "24px 22px", textAlign: "center" }}>
+              <span style={{ fontSize: 14, color: "var(--neutral-10)" }}>
+                No ongoing projects
+              </span>
+            </div>
+          )}
+
           {/* Rows */}
-          {PROJECTS.map((project) => {
+          {!isLoading && projects?.map((project) => {
             const ps = PRIORITY_STYLES[project.priority];
             return (
               <div
-                key={project.name}
+                key={project.id}
                 className="grid items-center transition-colors hover:bg-black/[0.015]"
                 style={{
                   gridTemplateColumns: "minmax(180px, 1fr) 70px 90px 120px 100px",
@@ -168,7 +186,7 @@ export function OngoingProjects() {
                     style={{
                       width: 8,
                       height: 8,
-                      backgroundColor: project.dotColor,
+                      backgroundColor: project.status_color,
                     }}
                   />
                   <span
@@ -181,16 +199,26 @@ export function OngoingProjects() {
 
                 {/* Client */}
                 <span
-                  className="flex items-center justify-center rounded-lg font-bold flex-shrink-0"
+                  className="flex items-center justify-center rounded-lg font-bold flex-shrink-0 overflow-hidden"
                   style={{
                     width: 30,
                     height: 30,
                     fontSize: 12,
-                    backgroundColor: project.clientBg,
-                    color: project.clientBg === "#f5f5f5" ? "var(--neutral-30)" : "#fff",
+                    backgroundColor: project.client.color,
+                    color: "#fff",
                   }}
                 >
-                  {project.clientIcon}
+                  {project.client.icon_url ? (
+                    <img
+                      src={project.client.icon_url}
+                      alt={project.client.name}
+                      width={30}
+                      height={30}
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    project.client.name.slice(0, 2).toUpperCase()
+                  )}
                 </span>
 
                 {/* Priority */}
@@ -207,7 +235,7 @@ export function OngoingProjects() {
                     className="inline-block rounded-full"
                     style={{ width: 6, height: 6, backgroundColor: ps.dot }}
                   />
-                  {project.priority}
+                  {PRIORITY_LABELS[project.priority]}
                 </span>
 
                 {/* Deadline */}
@@ -216,7 +244,7 @@ export function OngoingProjects() {
                 </span>
 
                 {/* Team */}
-                <AvatarGroup count={project.teamCount} />
+                <AvatarGroup count={project.team_member_count} />
               </div>
             );
           })}

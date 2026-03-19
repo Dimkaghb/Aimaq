@@ -127,29 +127,31 @@ const TOOLS_NAV: NavItem[] = [
   },
 ];
 
-const ADMIN_NAV: NavItem[] = [
-  {
-    label: "Support",
-    href: "/dashboard/support",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-    ),
-  },
-  {
-    label: "Leonardo",
-    href: "/dashboard/profile",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    ),
-  },
-];
+function getAdminNav(displayName: string): NavItem[] {
+  return [
+    {
+      label: "Support",
+      href: "/dashboard/support",
+      icon: (
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      ),
+    },
+    {
+      label: displayName,
+      href: "/dashboard/profile",
+      icon: (
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+    },
+  ];
+}
 
 function NavLink({
   item,
@@ -189,7 +191,11 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  userName?: string;
+}
+
+export function Sidebar({ userName }: SidebarProps) {
   const [activePath] = useState("/dashboard");
 
   return (
@@ -275,7 +281,7 @@ export function Sidebar() {
         {/* Admin */}
         <div className="flex flex-col" style={{ gap: 1, marginBottom: 12 }}>
           <SectionLabel label="Administration" />
-          {ADMIN_NAV.map((item) => (
+          {getAdminNav(userName ?? "Profile").map((item) => (
             <NavLink key={item.label} item={item} active={activePath === item.href} />
           ))}
         </div>

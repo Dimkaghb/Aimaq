@@ -5,6 +5,10 @@ import { AboutApp } from "./components/AboutApp";
 import { Features } from "./components/Features";
 import { Benefits } from "./components/Benefits";
 import { Reviews } from "./components/Reviews";
+import { Pricing } from "./components/Pricing";
+import { Blog } from "./components/Blog";
+import { Community } from "./components/Community";
+import { Footer } from "./components/Footer";
 
 /* Matches Framer Content wrapper: gap=160px between sections, pb=160px */
 export function LandingPage() {
@@ -26,7 +30,13 @@ export function LandingPage() {
         <Features />
         <Benefits />
         <Reviews />
+        <Pricing />
+        <Blog />
+        <Community />
       </div>
+
+      {/* Footer — outside content gap wrapper */}
+      <Footer />
     </main>
   );
 }

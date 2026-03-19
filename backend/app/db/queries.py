@@ -21,7 +21,16 @@ async def upsert_listing(listing: ListingUpsert) -> dict | None:
 async def upsert_listings_batch(listings: list[ListingUpsert]) -> int:
     """Upsert a batch of listings. Returns count of upserted rows."""
     db = await get_db()
-    data = [l.model_dump() for l in listings]
+
+    # Deduplicate within the batch — keep last occurrence per (external_id, source)
+    seen: dict[tuple[str, str], dict] = {}
+    for l in listings:
+        key = (l.external_id, l.source)
+        seen[key] = l.model_dump()
+
+    data = list(seen.values())
+    log.info("listings_deduped", original=len(listings), unique=len(data))
+
     result = (
         await db.table("listings")
         .upsert(data, on_conflict="external_id,source")

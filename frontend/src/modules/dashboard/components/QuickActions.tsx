@@ -51,7 +51,7 @@ export function QuickActions() {
           className="text-center font-medium leading-snug"
           style={{ fontSize: 16, color: "var(--neutral-20)" }}
         >
-          Find places
+          Найти места
         </span>
       </Link>
     </div>

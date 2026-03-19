@@ -84,31 +84,31 @@ const GridIcon = () => (
 
 /* Block 1 data */
 const block1 = {
-  eyebrow: "project management",
-  heading: "Keep every project moving forward",
-  body: "Plan, assign, and deliver your work — all in one place. With smart task tracking, deadlines, and real-time progress, you stay organized and clients stay confident.",
+  eyebrow: "управление проектами",
+  heading: "Продвигайте каждый проект вперёд",
+  body: "Планируйте, назначайте и сдавайте задачи — всё в одном месте. Благодаря умному учёту задач, срокам и прогрессу в реальном времени вы сохраняете порядок, а клиенты — уверенность.",
   imageBg: "https://framerusercontent.com/images/g690a9Fxc6Y5G69sPCSKq4vjw.png",
   illustration: "https://framerusercontent.com/images/gUEFVWinvZ7dMZa0mUhNZWHNj3U.png",
   pills: [
-    { label: "Tasks", icon: <CheckIcon /> },
-    { label: "Time tracking", icon: <ClockIcon /> },
-    { label: "Timesheets", icon: <CalendarIcon /> },
-    { label: "Reports", icon: <BarChartIcon /> },
+    { label: "Задачи", icon: <CheckIcon /> },
+    { label: "Учет времени", icon: <ClockIcon /> },
+    { label: "Табели", icon: <CalendarIcon /> },
+    { label: "Отчеты", icon: <BarChartIcon /> },
   ],
 };
 
 /* Block 2 data */
 const block2 = {
-  eyebrow: "financial management",
-  heading: "Track income, get paid, stress less",
-  body: "Create branded invoices, log expenses, and keep tabs on your earnings. Whether you bill hourly or per project, everything's automated and tax-friendly.",
+  eyebrow: "финансовое управление",
+  heading: "Следите за доходом и получайте оплату без лишнего стресса",
+  body: "Создавайте фирменные счета, учитывайте расходы и держите под контролем свои поступления. Независимо от того, выставляете вы по часам или за проект — всё автоматизировано и удобно для налогов.",
   imageBg: "https://framerusercontent.com/images/g690a9Fxc6Y5G69sPCSKq4vjw.png",
   illustration: "https://framerusercontent.com/images/thBhwyY3D4d8TRQEbrMU6zSvz8.png",
   pills: [
-    { label: "Invoicing", icon: <FileTextIcon /> },
-    { label: "Budgets", icon: <WalletIcon /> },
-    { label: "Forecasting", icon: <TrendingUpIcon /> },
-    { label: "Integrations", icon: <GridIcon /> },
+    { label: "Счета", icon: <FileTextIcon /> },
+    { label: "Бюджеты", icon: <WalletIcon /> },
+    { label: "Прогнозы", icon: <TrendingUpIcon /> },
+    { label: "Интеграции", icon: <GridIcon /> },
   ],
 };
 
@@ -195,7 +195,7 @@ function TextColumn({
           className="inline-flex items-center self-start px-6 py-[18px] rounded-full font-semibold text-white text-[16px] leading-[1.2] transition-opacity duration-150 hover:opacity-85"
           style={{ backgroundColor: "var(--neutral-30)" }}
         >
-          Try Aimaq free
+          Попробовать Aimaq бесплатно
         </Link>
       </div>
 
@@ -228,7 +228,7 @@ export function Features() {
             <ImagePanel
               bgUrl={block1.imageBg}
               illustrationUrl={block1.illustration}
-              alt="Aimaq project management — task board and time tracking interface"
+              alt="Aimaq: управление проектами — доска задач и интерфейс учёта времени"
             />
           </SlideIn>
           <SlideIn from="right" delay={0.1} className="flex" style={{ flex: "1 1 0", minWidth: 0 }}>
@@ -255,7 +255,7 @@ export function Features() {
             <ImagePanel
               bgUrl={block2.imageBg}
               illustrationUrl={block2.illustration}
-              alt="Aimaq financial management — invoice and earnings tracking interface"
+              alt="Aimaq: финансовое управление — выставление счетов и учёт доходов"
             />
           </SlideIn>
         </div>

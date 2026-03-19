@@ -54,11 +54,11 @@ function Author({ name, role }: { name: string; role: string }) {
 
 /* ── Badge component ──────────────────────────────────────── */
 const BADGE_COLORS: Record<string, { bg: string; color: string }> = {
-  "MUST READ":  { bg: "rgb(69, 57, 51)",    color: "#fff" },
-  FEATURED:     { bg: "rgb(201, 80, 46)",   color: "#fff" },
-  TOOLS:        { bg: "rgb(21, 108, 194)",  color: "#fff" },
-  INSIGHT:      { bg: "rgb(207, 141, 19)",  color: "#fff" },
-  MANAGEMENT:   { bg: "rgb(14, 161, 88)",   color: "#fff" },
+  "НУЖНО ПРОЧИТАТЬ":  { bg: "rgb(69, 57, 51)",    color: "#fff" },
+  "РЕКОМЕНДУЕМ":      { bg: "rgb(201, 80, 46)",   color: "#fff" },
+  "ИНСТРУМЕНТЫ":      { bg: "rgb(21, 108, 194)",  color: "#fff" },
+  "ПОЛЕЗНОЕ":        { bg: "rgb(207, 141, 19)",  color: "#fff" },
+  "УПРАВЛЕНИЕ":      { bg: "rgb(14, 161, 88)",   color: "#fff" },
 };
 function Badge({ label }: { label: string }) {
   const c = BADGE_COLORS[label] ?? { bg: "var(--neutral-30)", color: "#fff" };
@@ -96,7 +96,7 @@ function FeaturedCard() {
       >
         <Image
           src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=640&q=80&auto=format&fit=crop"
-          alt="Creative agency office"
+            alt="Офис креативного агентства"
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
@@ -109,26 +109,25 @@ function FeaturedCard() {
         style={{ padding: 40, gap: 24 }}
       >
         <div className="flex flex-col" style={{ gap: 16 }}>
-          <Badge label="MUST READ" />
+          <Badge label="НУЖНО ПРОЧИТАТЬ" />
           <h3
             className="font-semibold leading-[125%] tracking-[-0.02em]"
             style={{ fontSize: "clamp(20px, 2.4vw, 28px)", color: "var(--neutral-30)" }}
           >
-            How to start a 100k creative agency in 2025
+            Как запустить креативное агентство на 100k в 2025 году
           </h3>
           <p
             className="text-[15px] leading-[150%]"
             style={{ color: "var(--neutral-20)" }}
           >
-            Learn how to kickstart your journey into agency ownership with our
-            comprehensive guide.
+            Узнайте, как начать путь к собственному агентству с нашим подробным руководством.
           </p>
         </div>
 
         {/* Author row + FEATURED badge at bottom */}
         <div className="flex items-end justify-between flex-wrap" style={{ gap: 12 }}>
-          <Author name="Dhyna Phils" role="Head of Marketing" />
-          <Badge label="FEATURED" />
+          <Author name="Dhyna Phils" role="Руководитель маркетинга" />
+          <Badge label="РЕКОМЕНДУЕМ" />
         </div>
       </div>
     </div>
@@ -180,7 +179,7 @@ function SmallCard({
           </h4>
           <Badge label={badge} />
         </div>
-        <Author name="Dyna Phils" role="Head of Marketing" />
+        <Author name="Dyna Phils" role="Руководитель маркетинга" />
       </div>
     </div>
   );
@@ -195,7 +194,7 @@ export function Blog() {
           className="text-[13px] font-semibold tracking-[0.12em] uppercase"
           style={{ color: "var(--neutral-10)" }}
         >
-          Blog
+          Блог
         </span>
         <h2
           className="font-semibold leading-[115%] tracking-[-0.03em]"
@@ -205,7 +204,7 @@ export function Blog() {
             maxWidth: 600,
           }}
         >
-          Ideas to level-up your freelance game
+          Идеи, чтобы прокачать ваш фриланс-опыт
         </h2>
       </FadeUp>
 
@@ -221,22 +220,22 @@ export function Blog() {
           <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
             <SmallCard
               image="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=640&q=80&auto=format&fit=crop"
-              title="Top 10 digital agency software"
-              badge="TOOLS"
+              title="Топ-10 сервисов для digital-агентств"
+              badge="ИНСТРУМЕНТЫ"
             />
           </StaggerItem>
           <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
             <SmallCard
               image="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=640&q=80&auto=format&fit=crop"
-              title="A complete guide to project success in 2026"
-              badge="INSIGHT"
+              title="Полное руководство по успеху проектов в 2026 году"
+              badge="ПОЛЕЗНОЕ"
             />
           </StaggerItem>
           <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
             <SmallCard
               image="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=640&q=80&auto=format&fit=crop"
-              title="What Are Billable Hours"
-              badge="MANAGEMENT"
+              title="Что такое биллируемые часы"
+              badge="УПРАВЛЕНИЕ"
             />
           </StaggerItem>
         </StaggerGroup>

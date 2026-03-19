@@ -63,7 +63,7 @@ export function Hero() {
               className="w-full text-center font-semibold leading-[120%] tracking-[-0.03em]"
               style={{ fontSize: "clamp(40px, 6.5vw, 76px)", color: "var(--neutral-30)" }}
             >
-              Run your freelance business like a pro
+              Управляйте своим фриланс-бизнесом как профессионал
             </motion.h1>
 
             <motion.p
@@ -75,9 +75,8 @@ export function Hero() {
                 maxWidth: 700,
               }}
             >
-              All-in-one platform for managing clients, projects, and payments
-              without the chaos. From first contract to final invoice,
-              we&apos;ve got your back.
+              Единая платформа для управления клиентами, проектами и платежами без
+              хаоса. От первого договора до финального счета — мы рядом.
             </motion.p>
           </div>
 
@@ -92,14 +91,14 @@ export function Hero() {
               className="inline-flex items-center font-semibold text-[16px] leading-[1.2] text-white transition-opacity hover:opacity-85"
               style={{ padding: "18px 24px", borderRadius: "100px", backgroundColor: "var(--neutral-30)" }}
             >
-              Try Aimaq free
+              Попробовать Aimaq бесплатно
             </Link>
             <Link
               href="/#features"
               className="inline-flex items-center font-semibold text-[16px] leading-[1.2] transition-colors hover:bg-black/5"
               style={{ padding: "18px 24px", borderRadius: "100px", backgroundColor: "rgba(255,255,255,0.1)", color: "var(--neutral-30)" }}
             >
-              See features
+              Посмотреть возможности
             </Link>
           </motion.div>
         </div>
@@ -113,7 +112,7 @@ export function Hero() {
         >
           <Image
             src="https://framerusercontent.com/images/JeI7uULY0av9DxD7q7NVLTuoNc.png"
-            alt="Aimaq dashboard — manage clients, projects and payments"
+            alt="Панель управления Aimaq — управление клиентами, проектами и платежами"
             fill
             priority
             className="object-cover object-top"

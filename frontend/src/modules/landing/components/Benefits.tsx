@@ -159,11 +159,11 @@ export function Benefits() {
         {/* Header */}
         <FadeUp className="flex flex-col items-center gap-5 w-full text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
           <span className="font-semibold tracking-widest uppercase" style={{ fontSize: 15, color: "var(--neutral-10)" }}>
-            features
+            возможности
           </span>
           <h2 className="font-semibold leading-[120%] tracking-[-0.03em]"
             style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--neutral-30)" }}>
-            Built for freelancers, powered by simplicity
+            Создано для фрилансеров, работает благодаря простоте
           </h2>
         </FadeUp>
 
@@ -175,7 +175,7 @@ export function Benefits() {
             <StaggerItem className="flex flex-col" style={{ flex: "1 1 460px", backgroundColor: "rgba(240, 234, 229, 1)", borderRadius: 24, padding: 32, gap: 80, overflow: "hidden" }}>
               <h3 className="font-semibold leading-[140%] tracking-[-0.03em]"
                 style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}>
-                Smart, flexible, and built around your business workflow
+                Умное, гибкое и создано под ваш рабочий процесс
               </h3>
               <div className="relative w-full" style={{ height: 176 }}>
                 <Image
@@ -186,8 +186,7 @@ export function Benefits() {
                 />
               </div>
               <p className="leading-[150%]" style={{ fontSize: 18, color: "var(--neutral-20)" }}>
-                Personalize every detail. From branding and interface layout to
-                colors and menus, so Aimaq feels like an extension of your brand.
+                Настраивайте каждую деталь. От фирменного стиля и раскладки интерфейса до цветов и меню — так Aimaq становится продолжением вашего бренда.
               </p>
             </StaggerItem>
 
@@ -195,15 +194,14 @@ export function Benefits() {
             <StaggerItem className="flex flex-col" style={{ flex: "1 1 460px", backgroundColor: "rgba(241, 235, 229, 1)", borderRadius: 24, padding: 32, gap: 80, overflow: "hidden" }}>
               <h3 className="font-semibold leading-[140%] tracking-[-0.03em]"
                 style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}>
-                Integrates seamlessly with the tools you already use
+                Легко интегрируется с теми инструментами, которыми вы уже пользуетесь
               </h3>
               <div className="flex flex-col" style={{ gap: 16, height: 176 }}>
                 <IntegrationsRow items={integrationRow1} direction="left" />
                 <IntegrationsRow items={integrationRow2} direction="right" />
               </div>
               <p className="leading-[150%]" style={{ fontSize: 18, color: "var(--neutral-20)" }}>
-                Seamless integrations. Plug Aimaq into the tools you love.
-                Set up automations, sync your data, and make your systems work smarter together.
+                Бесшовные интеграции. Подключайте Aimaq к тем инструментам, которые вам нравятся. Настройте автоматизации, синхронизируйте данные и сделайте свои системы умнее вместе.
               </p>
             </StaggerItem>
           </StaggerGroup>
@@ -213,22 +211,22 @@ export function Benefits() {
             <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
               <BenefitsCard
                 icon={<HandshakeIcon />}
-                title="Collaborate in realtime"
-                description="Keep every conversation in sync — use comments, messages, and project chats to stay on the same page."
+                title="Совместная работа в реальном времени"
+                description="Держите все обсуждения в одном ритме — используйте комментарии, сообщения и чаты проекта, чтобы оставаться на одной странице."
               />
             </StaggerItem>
             <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
               <BenefitsCard
                 icon={<GlobeIcon />}
-                title="Speaks your language"
-                description="Set your language, currency, time, and date preferences for a seamless experience that feels truly local."
+                title="Говорит на вашем языке"
+                description="Настройте язык, валюту, время и даты — чтобы всё ощущалось по-настоящему локально."
               />
             </StaggerItem>
             <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
               <BenefitsCard
                 icon={<LayoutIcon />}
-                title="View things your way"
-                description="Easily toggle between various views, including Kanban, cards, list, table, timeline, and calendar."
+                title="Покажет всё так, как удобно вам"
+                description="Переключайтесь между разными представлениями: Kanban, карточки, список, таблица, таймлайн и календарь."
               />
             </StaggerItem>
           </StaggerGroup>

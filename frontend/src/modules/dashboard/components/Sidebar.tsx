@@ -26,7 +26,7 @@ interface NavItem {
 
 const MAIN_NAV: NavItem[] = [
   {
-    label: "Home",
+    label: "Главная",
     href: "/dashboard",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -36,7 +36,7 @@ const MAIN_NAV: NavItem[] = [
     ),
   },
   {
-    label: "Vendors",
+    label: "Поставщики",
     href: "/dashboard/vendors",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -47,7 +47,7 @@ const MAIN_NAV: NavItem[] = [
     ),
   },
   {
-    label: "Businesses",
+    label: "Бизнесы",
     href: "/dashboard/businesses",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -56,7 +56,7 @@ const MAIN_NAV: NavItem[] = [
     ),
   },
   {
-    label: "Map",
+    label: "Карта",
     href: "/app",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -70,7 +70,7 @@ const MAIN_NAV: NavItem[] = [
 function getAdminNav(displayName: string): NavItem[] {
   return [
     {
-      label: "Support",
+      label: "Поддержка",
       href: "/dashboard/support",
       icon: (
         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -242,7 +242,7 @@ export function Sidebar({ userName }: SidebarProps) {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          {!collapsed && "Find places"}
+          {!collapsed && "Найти места"}
         </Link>
 
         {/* Spacer */}
@@ -250,8 +250,8 @@ export function Sidebar({ userName }: SidebarProps) {
 
         {/* Admin */}
         <div className="flex flex-col" style={{ gap: 1, marginBottom: 12 }}>
-          {!collapsed && <SectionLabel label="Administration" />}
-          {getAdminNav(userName ?? "Profile").map((item) => (
+          {!collapsed && <SectionLabel label="Администрирование" />}
+          {getAdminNav(userName ?? "Профиль").map((item) => (
             <NavLink
               key={item.label}
               item={item}

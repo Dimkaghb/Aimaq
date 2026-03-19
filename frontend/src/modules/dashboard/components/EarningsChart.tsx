@@ -11,6 +11,13 @@ interface EarningsChartProps {
 export function EarningsChart({ months, isLoading }: EarningsChartProps) {
   const [period, setPeriod] = useState<"month" | "week" | "year">("month");
 
+  const periodLabel =
+    period === "month"
+      ? "Месяц"
+      : period === "week"
+        ? "Неделя"
+        : "Год";
+
   const maxVal =
     months && months.length > 0
       ? Math.max(...months.map((m) => m.billable + m.non_billable), 1)
@@ -32,7 +39,7 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
           className="font-semibold tracking-[-0.02em]"
           style={{ fontSize: 17, color: "var(--neutral-30)" }}
         >
-          Activity
+          Активность
         </h3>
         <div className="flex items-center" style={{ gap: 8 }}>
           <button
@@ -53,7 +60,7 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
               textTransform: "capitalize",
             }}
           >
-            {period}
+            {periodLabel}
             <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -83,11 +90,11 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
       <div className="flex items-center" style={{ gap: 16 }}>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--accent-blue)" }} />
-          Active
+          Активные
         </span>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--beige-40)" }} />
-          Inactive
+          Неактивные
         </span>
       </div>
 

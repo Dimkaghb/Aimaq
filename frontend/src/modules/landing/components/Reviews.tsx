@@ -11,65 +11,65 @@ import { FadeUp, FadeIn } from "./motion";
 const reviews = [
   {
     quote:
-      "As a fast-moving design team, we needed a tool that matched our pace. From client onboarding to getting paid, this just works — clean, fast, and beautifully built.",
+      "Как быстро движущейся дизайн-команде нам нужен был инструмент, который держит темп. От онбординга клиентов до оплаты — всё работает «из коробки»: чисто, быстро и очень качественно.",
     name: "Leah Daniel",
-    role: "Design Ops Lead, Teamwork",
+    role: "Лид по операционному дизайну (Design Ops), Teamwork",
     initials: "LD",
     color: "#9DC8DE",
   },
   {
     quote:
-      "Aimaq replaced four different tools for me. Now I manage proposals, contracts, invoices, and time tracking all in one place. It's changed how I run my studio.",
+      "Aimaq заменил для меня четыре разных инструмента. Теперь я веду предложения, договоры, счета и учет времени в одном месте. Это изменило то, как я управляю своей студией.",
     name: "Marcus Obi",
-    role: "Founder, Obi Creative Studio",
+    role: "Основатель, Obi Creative Studio",
     initials: "MO",
     color: "#F4B8A0",
   },
   {
     quote:
-      "The invoice-to-payment flow is so smooth. Clients love the branded experience and I love getting paid on time. Finally a tool built for real freelancers.",
+      "Поток «счет → оплата» работает невероятно гладко. Клиентам нравится фирменный опыт, а мне — своевременная оплата. Наконец-то инструмент для настоящих фрилансеров.",
     name: "Sophie Tremblay",
-    role: "Brand Designer, Freelance",
+    role: "Бренд-дизайнер, фриланс",
     initials: "ST",
     color: "#B5D4A0",
   },
   {
     quote:
-      "I've tried every agency tool on the market. Aimaq is the first one that actually feels like it was designed for creatives. The interface is stunning.",
+      "Я перепробовал все агентские инструменты на рынке. Aimaq — первый, который реально ощущается как продукт, созданный для креативщиков. Интерфейс потрясающий.",
     name: "Raj Mehta",
-    role: "Creative Director, Pixels & Co.",
+    role: "Креативный директор, Pixels & Co.",
     initials: "RM",
     color: "#C4AADC",
   },
   {
     quote:
-      "Client portal is a game-changer. My clients can see project progress, approve deliverables, and pay invoices all in one place. Looks completely professional.",
+      "Клиентский портал — настоящий прорыв. Мои клиенты видят прогресс проекта, подтверждают материалы и оплачивают счета в одном месте. Всё выглядит максимально профессионально.",
     name: "Ana Leal",
-    role: "UX Consultant, Freelance",
+    role: "UX-консультант, фриланс",
     initials: "AL",
     color: "#F4D4A0",
   },
   {
     quote:
-      "Time tracking used to be the thing I hated most about freelancing. Aimaq makes it so effortless — it just runs in the background and the reports are beautiful.",
+      "Учет времени раньше был тем, что я больше всего ненавидел во фрилансе. Aimaq делает это невероятно легко: работает в фоне, а отчеты получаются красивыми.",
     name: "Tom Weiss",
-    role: "Motion Designer, Studio Nine",
+    role: "Моушн-дизайнер, Studio Nine",
     initials: "TW",
     color: "#A0C4DC",
   },
   {
     quote:
-      "Switched from three separate tools and saved $120/month. Everything integrates perfectly and the support team actually responds. Highly recommend.",
+      "Перешел с трёх отдельных инструментов и сэкономил $120 в месяц. Всё отлично интегрируется, а команда поддержки действительно отвечает. Очень рекомендую.",
     name: "Nia Okafor",
-    role: "Web Developer, Freelance",
+    role: "Веб-разработчик, фриланс",
     initials: "NO",
     color: "#D4C4A0",
   },
   {
     quote:
-      "The proposals feature sealed more deals for me in the first month than any other platform. Clients see a professional, branded document and trust goes up immediately.",
+      "Функция «предложения» помогла мне закрыть больше сделок уже в первый месяц, чем любая другая платформа. Клиенты видят профессиональный фирменный документ — и доверие растёт сразу.",
     name: "James Park",
-    role: "Strategy Consultant",
+    role: "Стратегический консультант",
     initials: "JP",
     color: "#F0B4B4",
   },
@@ -172,7 +172,7 @@ export function Reviews() {
               color: "var(--neutral-30)",
             }}
           >
-            "Aimaq is by far the best agency tool I have ever used"
+            "Aimaq — лучший инструмент для агентств из всех, что я использовал"
           </blockquote>
           {/* Author */}
           <div className="flex items-center gap-4">
@@ -197,7 +197,7 @@ export function Reviews() {
                 className="leading-[150%]"
                 style={{ fontSize: 14, color: "var(--neutral-10)" }}
               >
-                VP Marketing, Meta
+                Директор по маркетингу (VP Marketing), Meta
               </span>
             </div>
           </div>

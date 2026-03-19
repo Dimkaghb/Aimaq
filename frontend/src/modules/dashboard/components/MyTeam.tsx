@@ -14,9 +14,9 @@ const STATUS_STYLES: Record<TeamMemberStatus, { bg: string; color: string }> = {
 };
 
 const STATUS_LABELS: Record<TeamMemberStatus, string> = {
-  online: "Online",
-  idle: "Idle",
-  offline: "Offline",
+  online: "Онлайн",
+  idle: "В паузе",
+  offline: "Офлайн",
 };
 
 function getInitials(name: string): string {
@@ -67,7 +67,7 @@ export function MyTeam({ members, isLoading }: MyTeamProps) {
           className="font-semibold"
           style={{ fontSize: 15, color: "var(--neutral-30)" }}
         >
-          Recent places
+          Недавние места
         </h3>
         <button
           type="button"
@@ -81,7 +81,7 @@ export function MyTeam({ members, isLoading }: MyTeamProps) {
             padding: 0,
           }}
         >
-          See all
+          Смотреть все
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export function MyTeam({ members, isLoading }: MyTeamProps) {
         {!isLoading && (!members || members.length === 0) && (
           <div style={{ padding: "24px 20px", textAlign: "center" }}>
             <span style={{ fontSize: 14, color: "var(--neutral-10)" }}>
-              No recent places
+              Нет недавних мест
             </span>
           </div>
         )}

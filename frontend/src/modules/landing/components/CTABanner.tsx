@@ -68,14 +68,14 @@ export function CTABanner() {
               color: "var(--neutral-30)",
             }}
           >
-            Ready to get started
+            Готовы начать?
           </h2>
           {/* Body Large: 18px regular 150% leading */}
           <p
             className="leading-[150%]"
             style={{ fontSize: 18, color: "var(--neutral-20)" }}
           >
-            Download Aimaq for free. No credit card required.
+            Скачайте Aimaq бесплатно. Без кредитной карты.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export function CTABanner() {
             backgroundColor: "var(--neutral-30)",
           }}
         >
-          Try Freelio free
+          Попробовать Aimaq бесплатно
         </Link>
       </FadeUp>
     </section>

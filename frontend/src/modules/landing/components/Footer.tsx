@@ -9,16 +9,16 @@
 import Link from "next/link";
 
 const pagesLinks = [
-  { label: "Home", href: "/" },
-  { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "Blog", href: "/blog" },
+  { label: "Главная", href: "/" },
+  { label: "Возможности", href: "/#features" },
+  { label: "Тарифы", href: "/#pricing" },
+  { label: "Блог", href: "/blog" },
 ];
 
 const infoLinks = [
-  { label: "Contact", href: "/contact-us" },
-  { label: "Privacy", href: "/privacy-policy" },
-  { label: "Terms of use", href: "/terms-of-use" },
+  { label: "Контакты", href: "/contact-us" },
+  { label: "Конфиденциальность", href: "/privacy-policy" },
+  { label: "Условия использования", href: "/terms-of-use" },
 ];
 
 const XIcon = () => (
@@ -68,7 +68,7 @@ export function Footer() {
             <div className="flex flex-col gap-4">
               <DreetlioLogo />
               <p className="leading-[150%]" style={{ fontSize: 16, color: "var(--neutral-20)" }}>
-                Your favourite business management software. Built for early startup founders.
+                Любимое программное обеспечение для управления бизнесом. Создано для ранних основателей стартапов.
               </p>
             </div>
             {/* Social links — 40px circles */}
@@ -104,7 +104,7 @@ export function Footer() {
                 className="font-semibold tracking-widest uppercase"
                 style={{ fontSize: 12, color: "var(--neutral-10)" }}
               >
-                Pages
+                Страницы
               </span>
               <div className="flex flex-col gap-4">
                 {pagesLinks.map((link) => (
@@ -126,7 +126,7 @@ export function Footer() {
                 className="font-semibold tracking-widest uppercase"
                 style={{ fontSize: 12, color: "var(--neutral-10)" }}
               >
-                Information
+                Информация
               </span>
               <div className="flex flex-col gap-4">
                 {infoLinks.map((link) => (
@@ -156,7 +156,7 @@ export function Footer() {
             className="leading-[150%] transition-opacity hover:opacity-70"
             style={{ fontSize: 16, color: "var(--neutral-10)" }}
           >
-            © 2025 Aimaq. Created by Leon Chike
+            © 2025 Aimaq. Создано Леоном Чайком
           </Link>
           <Link
             href="https://framer.com"
@@ -165,7 +165,7 @@ export function Footer() {
             className="leading-[150%] transition-opacity hover:opacity-70"
             style={{ fontSize: 16, color: "var(--neutral-10)" }}
           >
-            Built in Framer
+            Собрано в Framer
           </Link>
         </div>
       </div>

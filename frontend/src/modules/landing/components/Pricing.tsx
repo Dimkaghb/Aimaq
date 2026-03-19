@@ -18,27 +18,27 @@ import { FadeUp, StaggerGroup, StaggerItem } from "./motion";
 type Billing = "annually" | "monthly";
 
 const BASIC_FEATURES = [
-  "Unlimited projects",
-  "Unlimited clients",
-  "Time tracking",
+  "Безлимит проектов",
+  "Безлимит клиентов",
+  "Учет времени",
   "CRM",
-  "iOS & Android app",
+  "Приложение для iOS и Android",
 ];
 
 const PREMIUM_FEATURES = [
-  "Everything in Basic",
-  "Invoices & payments",
-  "Expense tracking",
-  "Income tracking",
-  "Scheduling",
+  "Всё из Базового",
+  "Счета и платежи",
+  "Учет расходов",
+  "Учет доходов",
+  "Планирование",
 ];
 
 const ENTERPRISE_FEATURES = [
-  "Everything in Premium",
-  "Custom data import",
-  "Advanced onboarding",
-  "Hubspot integration",
-  "Timesheets",
+  "Всё из Премиум",
+  "Импорт данных",
+  "Расширенная адаптация",
+  "Интеграция с HubSpot",
+  "Табели",
 ];
 
 function CheckIcon() {
@@ -64,6 +64,11 @@ function BillingToggle({
   billing: Billing;
   onChange: (b: Billing) => void;
 }) {
+  const labelByBilling: Record<Billing, string> = {
+    annually: "Ежегодно",
+    monthly: "Ежемесячно",
+  };
+
   return (
     <div
       className="flex items-center p-1 self-stretch"
@@ -77,7 +82,7 @@ function BillingToggle({
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className="flex-1 font-semibold text-[14px] leading-[1.2] capitalize transition-all"
+          className="flex-1 font-semibold text-[14px] leading-[1.2] transition-all"
           style={{
             padding: "10px 20px",
             borderRadius: 100,
@@ -91,7 +96,7 @@ function BillingToggle({
                 : "none",
           }}
         >
-          {opt.charAt(0).toUpperCase() + opt.slice(1)}
+          {labelByBilling[opt]}
         </button>
       ))}
     </div>
@@ -185,7 +190,7 @@ function HighlightedCard({
   onBillingChange: (b: Billing) => void;
 }) {
   const annual = billing === "annually";
-  const price  = annual ? "$189/mo" : "$229/mo";
+  const price = annual ? "189$ / мес" : "229$ / мес";
 
   return (
     <div
@@ -210,7 +215,7 @@ function HighlightedCard({
             className="text-[14px] font-medium leading-[1.4]"
             style={{ color: "var(--neutral-20)" }}
           >
-            Aimaq Premium
+              Aimaq Премиум
           </span>
           {annual && (
             <span
@@ -222,7 +227,7 @@ function HighlightedCard({
                 border: "1px solid rgba(14,161,88,0.25)",
               }}
             >
-              Save 20%
+                Сэкономьте 20%
             </span>
           )}
         </div>
@@ -236,7 +241,7 @@ function HighlightedCard({
           className="text-[15px] leading-[150%]"
           style={{ color: "var(--neutral-20)" }}
         >
-          For pro use with light needs.
+          Для профессионального использования с умеренными потребностями.
         </p>
       </div>
 
@@ -261,7 +266,7 @@ function HighlightedCard({
           marginTop: "auto",
         }}
       >
-        Get started
+        Начать
       </button>
     </div>
   );
@@ -278,7 +283,7 @@ export function Pricing() {
           className="text-[13px] font-semibold tracking-[0.12em] uppercase"
           style={{ color: "var(--neutral-10)" }}
         >
-          Pricing
+          Тарифы
         </span>
         <h2
           className="font-semibold leading-[115%] tracking-[-0.03em]"
@@ -288,7 +293,7 @@ export function Pricing() {
             maxWidth: 560,
           }}
         >
-          Simple plans for serious work
+          Простые тарифы для серьёзной работы
         </h2>
       </FadeUp>
 
@@ -299,12 +304,12 @@ export function Pricing() {
       >
         <StaggerItem style={{ flex: "1 1 280px", maxWidth: 341 }}>
           <DefaultCard
-            label="Aimaq Basic"
+            label="Aimaq Базовый"
             name="Basic"
-            price="Free"
-            desc="For solo use with light needs."
+            price="Бесплатно"
+            desc="Для одиночной работы и лёгких потребностей."
             features={BASIC_FEATURES}
-            cta="Try Freelio free"
+            cta="Попробовать Aimaq бесплатно"
           />
         </StaggerItem>
 
@@ -314,12 +319,12 @@ export function Pricing() {
 
         <StaggerItem style={{ flex: "1 1 280px", maxWidth: 341 }}>
           <DefaultCard
-            label="Aimaq Enterprise"
+            label="Aimaq Корпоративный"
             name="Enterprise"
-            price="Flexible"
-            desc="For team use with light needs."
+            price="Гибкий"
+            desc="Для команд с умеренными потребностями."
             features={ENTERPRISE_FEATURES}
-            cta="Contact sales"
+            cta="Связаться с отделом продаж"
           />
         </StaggerItem>
       </StaggerGroup>

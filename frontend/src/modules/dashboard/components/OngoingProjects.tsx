@@ -15,9 +15,9 @@ const PRIORITY_STYLES: Record<ProjectPriority, { bg: string; color: string; dot:
 };
 
 const PRIORITY_LABELS: Record<ProjectPriority, string> = {
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  high: "Высокий",
+  medium: "Средний",
+  low: "Низкий",
 };
 
 function AvatarGroup({ count }: { count: number }) {
@@ -107,7 +107,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
           className="font-semibold"
           style={{ fontSize: 15, color: "var(--neutral-30)" }}
         >
-          Popular places
+          Популярные места
         </span>
         <span
           className="flex items-center justify-center rounded-full font-semibold"
@@ -136,7 +136,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
               borderBottom: "1px solid var(--stroke)",
             }}
           >
-            {["Name", "Client", "Priority", "Deadline", "Assigned team"].map((h) => (
+            {["Название", "Клиент", "Приоритет", "Дедлайн", "Назначенная команда"].map((h) => (
               <span
                 key={h}
                 className="text-[12px] font-medium"
@@ -160,7 +160,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
           {!isLoading && (!projects || projects.length === 0) && (
             <div style={{ padding: "24px 22px", textAlign: "center" }}>
               <span style={{ fontSize: 14, color: "var(--neutral-10)" }}>
-                No popular places yet
+                Пока нет популярных мест
               </span>
             </div>
           )}

@@ -24,18 +24,18 @@ const YouTubeIcon = () => (
 const cards = [
   {
     platform: "X/Twitter",
-    followers: "15.2K followers",
-    description: "Stay updated on new features and discover how others are using Aimaq.",
-    cta: "Follow us",
+    followers: "15,2 тыс. подписчиков",
+    description: "Следите за обновлениями и узнавайте, как другие используют Aimaq.",
+    cta: "Подписаться",
     href: "https://x.com/Leonc7303",
     icon: <XIcon />,
     iconBg: "#000000",
   },
   {
     platform: "YouTube",
-    followers: "32K subscribers",
-    description: "Tips, tutorials, and in-depth feature guides to inspire and enhance your Aimaq workflow.",
-    cta: "Subscribe",
+    followers: "32 тыс. подписчиков",
+    description: "Советы, уроки и подробные гайды, чтобы вдохновлять и улучшать ваш рабочий процесс в Aimaq.",
+    cta: "Подписаться",
     href: "https://www.youtube.com/@Framer",
     icon: <YouTubeIcon />,
     iconBg: "#FF0000",
@@ -50,10 +50,10 @@ export function Community() {
         {/* Header */}
         <FadeUp className="flex flex-col items-center gap-5 text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
           <span className="font-semibold tracking-widest uppercase" style={{ fontSize: 15, color: "var(--neutral-10)" }}>
-            Community
+            Сообщество
           </span>
           <h2 className="font-semibold leading-[120%] tracking-[-0.03em]" style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--neutral-30)" }}>
-            Stay in the loop
+            Будьте в курсе
           </h2>
         </FadeUp>
 

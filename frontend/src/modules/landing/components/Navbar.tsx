@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 const navLinks = [
-  { label: "Features", href: "/#features" },
-  { label: "Benefits", href: "/#benefits" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact Us", href: "/contact-us" },
+  { label: "Возможности", href: "/#features" },
+  { label: "Преимущества", href: "/#benefits" },
+  { label: "Тарифы", href: "/#pricing" },
+  { label: "Блог", href: "/blog" },
+  { label: "Контакты", href: "/contact-us" },
 ];
 
 export function Navbar() {
@@ -50,7 +50,7 @@ export function Navbar() {
             className="inline-flex items-center px-6 py-[14px] rounded-full text-[15px] font-semibold text-white transition-opacity duration-150 hover:opacity-85 shrink-0"
             style={{ backgroundColor: "var(--neutral-30)" }}
           >
-            Try Aimaq free
+            Попробовать Aimaq бесплатно
           </Link>
         </div>
 
@@ -65,7 +65,7 @@ export function Navbar() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="p-2 rounded-lg hover:bg-black/5 transition-colors"
-            aria-label="Toggle menu"
+            aria-label="Открыть меню"
           >
             <span className="block w-5 h-0.5 bg-neutral-800 mb-1" />
             <span className="block w-5 h-0.5 bg-neutral-800 mb-1" />
@@ -92,7 +92,7 @@ export function Navbar() {
               className="mt-2 inline-flex justify-center items-center px-6 py-3 rounded-full text-[15px] font-semibold text-white"
               style={{ backgroundColor: "var(--neutral-30)" }}
             >
-            Try Aimaq free
+            Попробовать Aimaq бесплатно
             </Link>
           </div>
         )}

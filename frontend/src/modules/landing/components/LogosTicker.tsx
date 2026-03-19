@@ -90,10 +90,7 @@ export function LogosTicker() {
   const doubled = [...logos, ...logos];
 
   return (
-    <section
-      className="w-full flex justify-center px-6 py-16"
-      style={{ backgroundColor: "var(--bg-white)" }}
-    >
+    <section className="w-full flex justify-center px-6 py-16">
       <div
         className="flex flex-col items-center gap-4 w-full"
         style={{ maxWidth: "1072px" }}
@@ -106,29 +103,11 @@ export function LogosTicker() {
           Trusted by 7,000+ top startups, freelancers and studios
         </p>
 
-        {/* Ticker track */}
+        {/* Ticker with CSS mask fades — works on any background */}
         <div
-          className="relative w-full overflow-hidden"
+          className="ticker-mask w-full overflow-hidden"
           style={{ maxWidth: "900px", height: "55px" }}
         >
-          {/* Left fade */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to right, var(--bg-white) 0%, transparent 100%)",
-            }}
-          />
-          {/* Right fade */}
-          <div
-            className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to left, var(--bg-white) 0%, transparent 100%)",
-            }}
-          />
-
-          {/* Scrolling row */}
           <div className="flex items-center h-full logos-ticker-track">
             {doubled.map((logo, i) => (
               <div

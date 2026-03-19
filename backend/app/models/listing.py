@@ -1,6 +1,7 @@
 from datetime import datetime
+from enum import Enum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Listing(BaseModel):
@@ -47,3 +48,69 @@ class ListingUpsert(BaseModel):
     raw_data: dict = {}
 
     model_config = {"str_strip_whitespace": True}
+
+
+class BusinessType(str, Enum):
+    fastfood = "fastfood"
+    cafe = "cafe"
+    office = "office"
+    retail = "retail"
+    pharmacy = "pharmacy"
+
+
+class SearchRequest(BaseModel):
+    """Request body for POST /api/v1/search."""
+
+    business_type: BusinessType
+    district: str | None = None
+    budget_tenge: int | None = Field(None, gt=0)
+    area_sqm_min: int | None = Field(None, gt=0)
+    competitor_tolerance: int = Field(5, ge=0, le=10)
+
+    model_config = {"str_strip_whitespace": True}
+
+
+class ScoreBreakdown(BaseModel):
+    footfall: float
+    competitor: float
+    transit: float
+    price: float
+    area: float
+
+
+class ScoredListingResponse(BaseModel):
+    listing_id: str
+    rank: int
+    title: str
+    address: str
+    district: str | None = None
+    price_tenge: int | None = None
+    area_sqm: float | None = None
+    url: str
+    lat: float | None = None
+    lng: float | None = None
+    total_score: float
+    score_breakdown: ScoreBreakdown
+    competitor_count: int
+    bus_stops_nearby: int
+    metro_distance_m: float | None = None
+    nearest_metro_name: str | None = None
+
+
+class SearchResponse(BaseModel):
+    """Response for POST /api/v1/search."""
+
+    business_type: str
+    district: str | None = None
+    budget_tenge: int | None = None
+    competitor_tolerance: int
+    total_evaluated: int
+    results: list[ScoredListingResponse]
+
+
+class ListingsResponse(BaseModel):
+    """Response for GET /api/v1/listings."""
+
+    total: int
+    showing: int
+    listings: list[Listing]

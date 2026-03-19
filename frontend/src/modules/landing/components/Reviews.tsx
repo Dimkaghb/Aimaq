@@ -201,25 +201,11 @@ export function Reviews() {
       </div>
 
       {/* Full-width reviews ticker — height 288px, bleeds outside container */}
+      {/* CSS mask fades work on any background color */}
       <div
-        className="relative w-full overflow-hidden mt-14"
+        className="ticker-mask w-full overflow-hidden mt-14"
         style={{ height: 288 }}
       >
-        {/* Left/right fades */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-          style={{
-            background: "linear-gradient(to right, var(--bg-white), transparent)",
-          }}
-        />
-        <div
-          className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-          style={{
-            background: "linear-gradient(to left, var(--bg-white), transparent)",
-          }}
-        />
-
-        {/* Scrolling track */}
         <div
           className="flex items-center h-full reviews-ticker-track"
           style={{ gap: 24, paddingLeft: 24 }}

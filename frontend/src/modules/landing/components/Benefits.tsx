@@ -57,20 +57,7 @@ function IntegrationsRow({
 }) {
   const doubled = [...items, ...items];
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: 56 }}>
-      {/* fades */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-        style={{
-          background: `linear-gradient(to right, rgba(241,235,229,1), transparent)`,
-        }}
-      />
-      <div
-        className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-        style={{
-          background: `linear-gradient(to left, rgba(241,235,229,1), transparent)`,
-        }}
-      />
+    <div className="ticker-mask w-full overflow-hidden" style={{ height: 56 }}>
       <div
         className={`flex items-center h-full ${
           direction === "left"

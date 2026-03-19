@@ -2,7 +2,10 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.routers.listings import router as listings_router
+from app.api.v1.routers.search import router as search_router
 from app.config import settings
 
 log = structlog.get_logger()
@@ -24,7 +27,19 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    @app.get("/api/v1/health", status_code=200)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # --- Production routers ---
+    app.include_router(search_router, prefix="/api/v1", tags=["search"])
+    app.include_router(listings_router, prefix="/api/v1", tags=["listings"])
+
+    @app.get("/api/v1/health", status_code=200, tags=["system"])
     async def health() -> dict:
         return {"status": "ok"}
 

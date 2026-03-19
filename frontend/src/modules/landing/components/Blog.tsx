@@ -1,85 +1,183 @@
-/* Framer source: nodeId Lelf_AL_4 (Blog)
-   Container: maxWidth=1072px, gap=56px
-   BigCard (WideDesktop variant): full-width, height=480px, bg=rgba(255,255,255,0.7), radius=16px, horizontal layout
-   Small cards (3): Small variant, stacked, image 266px height, radius=16px
-   Badge: colored pill with label (Featured=orange, Tools=blue, Insight=yellow, Management=green) */
+/* Framer source: nodeId kD9B4CiVi (Blog)
+   Eyebrow "BLOG" | Heading 2 "Ideas to level-up your freelance game"
+   WideDesktop card: height=480, gap=0, horizontal stack
+     Left: ImageFrame width=45% radius=16 (left round only)
+     Right: ContentColumn padding=40, gap=24 vertical, white bg
+       Badge ("MUST READ" dark brown), Title H2, Description, AuthorRow + "FEATURED" badge
+   WideDesktop card has border 2px solid /Blue 30 (featured highlight)
+   SmallCards: 3-col grid, gap=12
+     Each: vertical stack, ImageFrame height=220 top radius, ContentRow padding=20 12
+     Badge right-aligned, Title + AuthorRow
+   Author avatars: circle initials DP bg=#8da6bb */
 
-import Link from "next/link";
+import Image from "next/image";
 
-/* Badge pill colors from Framer props */
-const BADGE_COLORS: Record<string, { bg: string; text: string }> = {
-  Featured: { bg: "rgb(201, 80, 46)", text: "#fff" },
-  Tools: { bg: "rgb(21, 108, 194)", text: "#fff" },
-  Insight: { bg: "rgb(207, 141, 19)", text: "#fff" },
-  Management: { bg: "rgb(14, 161, 88)", text: "#fff" },
+/* ── Author component ─────────────────────────────────────── */
+function Author({ name, role }: { name: string; role: string }) {
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("");
+  return (
+    <div className="flex items-center" style={{ gap: 10 }}>
+      <div
+        className="flex items-center justify-center font-semibold text-[11px] text-white flex-shrink-0"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          backgroundColor: "#8da6bb",
+        }}
+      >
+        {initials}
+      </div>
+      <div className="flex flex-col" style={{ gap: 1 }}>
+        <span
+          className="font-semibold text-[14px] leading-[1.4]"
+          style={{ color: "var(--neutral-30)" }}
+        >
+          {name}
+        </span>
+        <span
+          className="text-[12px] leading-[1.4]"
+          style={{ color: "var(--neutral-10)" }}
+        >
+          {role}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Badge component ──────────────────────────────────────── */
+const BADGE_COLORS: Record<string, { bg: string; color: string }> = {
+  "MUST READ":  { bg: "rgb(69, 57, 51)",    color: "#fff" },
+  FEATURED:     { bg: "rgb(201, 80, 46)",   color: "#fff" },
+  TOOLS:        { bg: "rgb(21, 108, 194)",  color: "#fff" },
+  INSIGHT:      { bg: "rgb(207, 141, 19)",  color: "#fff" },
+  MANAGEMENT:   { bg: "rgb(14, 161, 88)",   color: "#fff" },
 };
-
-/* Gradient placeholder images using badge category color */
-const BG_GRADIENTS: Record<string, string> = {
-  Featured: "linear-gradient(135deg, #f5d0c0 0%, #e8a882 100%)",
-  Tools: "linear-gradient(135deg, #c0d8f5 0%, #82aee8 100%)",
-  Insight: "linear-gradient(135deg, #f5ecc0 0%, #e8cc82 100%)",
-  Management: "linear-gradient(135deg, #c0f5d4 0%, #82e8b0 100%)",
-};
-
 function Badge({ label }: { label: string }) {
-  const colors = BADGE_COLORS[label] ?? { bg: "var(--beige-10)", text: "var(--neutral-30)" };
+  const c = BADGE_COLORS[label] ?? { bg: "var(--neutral-30)", color: "#fff" };
   return (
     <span
-      className="inline-flex items-center font-semibold text-[12px] leading-[125%] tracking-widest uppercase px-3 py-1 rounded-full"
-      style={{ backgroundColor: colors.bg, color: colors.text }}
+      className="inline-flex items-center font-semibold text-[11px] tracking-[0.06em] uppercase leading-[1]"
+      style={{
+        padding: "6px 10px",
+        borderRadius: 100,
+        backgroundColor: c.bg,
+        color: c.color,
+      }}
     >
       {label}
     </span>
   );
 }
 
-const featuredPost = {
-  title: "How to start a 100k creative agency in 2025",
-  excerpt: "Learn how to kickstart your journey into agency ownership with our comprehensive guide.",
-  author: "Dhyna Phils",
-  role: "Head of Marketing",
-  badge: "Featured",
-  href: "/blog/how-to-start-a-100k-creative-agency",
-};
-
-const smallPosts = [
-  {
-    title: "Top 10 digital agency software",
-    author: "Dyna Phils",
-    role: "Head of Marketing",
-    badge: "Tools",
-    href: "/blog/top-10-digital-agency-software",
-  },
-  {
-    title: "A complete guide to project success in 2026",
-    author: "Dyna Phils",
-    role: "Head of Marketing",
-    badge: "Insight",
-    href: "/blog/guide-to-project-success-2026",
-  },
-  {
-    title: "What Are Billable Hours",
-    author: "Dyna Phils",
-    role: "Head of Marketing",
-    badge: "Management",
-    href: "/blog/what-are-billable-hours",
-  },
-];
-
-function AuthorRow({ author, role }: { author: string; role: string }) {
-  const initials = author.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+/* ── Featured / wide card ──────────────────────────────────── */
+function FeaturedCard() {
   return (
-    <div className="flex items-center gap-3">
+    <div
+      className="w-full flex overflow-hidden"
+      style={{
+        borderRadius: 20,
+        border: "2px solid var(--blue-30)",
+        backgroundColor: "rgba(255,255,255,0.72)",
+        minHeight: 380,
+      }}
+    >
+      {/* Image half */}
       <div
-        className="shrink-0 flex items-center justify-center rounded-full text-white font-semibold text-[12px]"
-        style={{ width: 36, height: 36, backgroundColor: "var(--blue-30)" }}
+        className="relative flex-shrink-0"
+        style={{ width: "46%", minHeight: 380 }}
       >
-        {initials}
+        <Image
+          src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=640&q=80&auto=format&fit=crop"
+          alt="Creative agency office"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
       </div>
-      <div className="flex flex-col">
-        <span className="font-medium text-[14px]" style={{ color: "var(--neutral-30)" }}>{author}</span>
-        <span className="text-[13px]" style={{ color: "var(--neutral-10)" }}>{role}</span>
+
+      {/* Content half */}
+      <div
+        className="flex flex-col justify-between flex-1"
+        style={{ padding: 40, gap: 24 }}
+      >
+        <div className="flex flex-col" style={{ gap: 16 }}>
+          <Badge label="MUST READ" />
+          <h3
+            className="font-semibold leading-[125%] tracking-[-0.02em]"
+            style={{ fontSize: "clamp(20px, 2.4vw, 28px)", color: "var(--neutral-30)" }}
+          >
+            How to start a 100k creative agency in 2025
+          </h3>
+          <p
+            className="text-[15px] leading-[150%]"
+            style={{ color: "var(--neutral-20)" }}
+          >
+            Learn how to kickstart your journey into agency ownership with our
+            comprehensive guide.
+          </p>
+        </div>
+
+        {/* Author row + FEATURED badge at bottom */}
+        <div className="flex items-end justify-between flex-wrap" style={{ gap: 12 }}>
+          <Author name="Dhyna Phils" role="Head of Marketing" />
+          <Badge label="FEATURED" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Small blog card ────────────────────────────────────────── */
+function SmallCard({
+  image,
+  title,
+  badge,
+}: {
+  image: string;
+  title: string;
+  badge: string;
+}) {
+  return (
+    <div
+      className="flex flex-col overflow-hidden"
+      style={{
+        borderRadius: 16,
+        backgroundColor: "rgba(255,255,255,0.72)",
+        flex: "1 1 280px",
+        minWidth: 0,
+      }}
+    >
+      {/* Image area */}
+      <div
+        className="relative w-full flex-shrink-0"
+        style={{ height: 220, overflow: "hidden" }}
+      >
+        <Image
+          src={image}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-col" style={{ padding: "20px 20px 24px", gap: 12 }}>
+        <div className="flex items-start justify-between" style={{ gap: 8 }}>
+          <h4
+            className="font-semibold text-[15px] leading-[145%]"
+            style={{ color: "var(--neutral-30)", flex: 1 }}
+          >
+            {title}
+          </h4>
+          <Badge label={badge} />
+        </div>
+        <Author name="Dyna Phils" role="Head of Marketing" />
       </div>
     </div>
   );
@@ -87,90 +185,52 @@ function AuthorRow({ author, role }: { author: string; role: string }) {
 
 export function Blog() {
   return (
-    <section className="w-full flex justify-center px-6 py-0">
-      <div className="flex flex-col w-full" style={{ maxWidth: 1072, gap: 56 }}>
-        {/* Header */}
-        <div className="flex flex-col items-center gap-5 text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
-          <span className="font-semibold tracking-widest uppercase" style={{ fontSize: 15, color: "var(--neutral-10)" }}>
-            blog
-          </span>
-          <h2 className="font-semibold leading-[120%] tracking-[-0.03em]" style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--neutral-30)" }}>
-            Ideas to level-up your freelance game
-          </h2>
-        </div>
+    <section className="w-full flex flex-col items-center px-6" style={{ gap: 48 }}>
+      {/* Header */}
+      <div className="flex flex-col items-center text-center" style={{ gap: 12 }}>
+        <span
+          className="text-[13px] font-semibold tracking-[0.12em] uppercase"
+          style={{ color: "var(--neutral-10)" }}
+        >
+          Blog
+        </span>
+        <h2
+          className="font-semibold leading-[115%] tracking-[-0.03em]"
+          style={{
+            fontSize: "clamp(28px, 4.5vw, 52px)",
+            color: "var(--neutral-30)",
+            maxWidth: 600,
+          }}
+        >
+          Ideas to level-up your freelance game
+        </h2>
+      </div>
 
-        {/* Cards */}
-        <div className="flex flex-col" style={{ gap: 24 }}>
-          {/* Featured wide card — WideDesktop variant: height=480px, horizontal, bg rgba(255,255,255,0.7) */}
-          <Link
-            href={featuredPost.href}
-            className="flex flex-col sm:flex-row overflow-hidden transition-opacity hover:opacity-95"
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.7)",
-              borderRadius: 16,
-              height: "auto",
-              minHeight: 320,
-            }}
-          >
-            {/* Image area */}
-            <div
-              className="shrink-0 sm:w-[45%]"
-              style={{
-                background: BG_GRADIENTS[featuredPost.badge],
-                minHeight: 240,
-              }}
-            />
-            {/* Text */}
-            <div className="flex flex-col justify-between p-8" style={{ flex: 1, gap: 24 }}>
-              <div className="flex flex-col gap-4">
-                <Badge label={featuredPost.badge} />
-                <h3
-                  className="font-semibold leading-[140%] tracking-[-0.03em]"
-                  style={{ fontSize: "clamp(20px, 2.2vw, 32px)", color: "var(--neutral-30)" }}
-                >
-                  {featuredPost.title}
-                </h3>
-                <p className="leading-[150%]" style={{ fontSize: 16, color: "var(--neutral-20)" }}>
-                  {featuredPost.excerpt}
-                </p>
-              </div>
-              <AuthorRow author={featuredPost.author} role={featuredPost.role} />
-            </div>
-          </Link>
+      {/* Cards wrapper — maxWidth=1072px */}
+      <div
+        className="w-full flex flex-col"
+        style={{ maxWidth: 1072, gap: 12 }}
+      >
+        {/* Featured wide card */}
+        <FeaturedCard />
 
-          {/* 3 small cards row — Small variant: image 266px, radius=16px */}
-          <div className="flex flex-wrap" style={{ gap: 24 }}>
-            {smallPosts.map((post) => (
-              <Link
-                key={post.title}
-                href={post.href}
-                className="flex flex-col overflow-hidden transition-opacity hover:opacity-95"
-                style={{ flex: "1 1 280px", borderRadius: 16 }}
-              >
-                {/* Image placeholder */}
-                <div
-                  style={{
-                    height: 266,
-                    borderRadius: 16,
-                    background: BG_GRADIENTS[post.badge],
-                  }}
-                />
-                {/* Content */}
-                <div className="flex flex-col gap-3 pt-4">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <h4
-                      className="font-semibold leading-[140%] tracking-[-0.03em]"
-                      style={{ fontSize: 20, color: "var(--neutral-30)" }}
-                    >
-                      {post.title}
-                    </h4>
-                    <Badge label={post.badge} />
-                  </div>
-                  <AuthorRow author={post.author} role={post.role} />
-                </div>
-              </Link>
-            ))}
-          </div>
+        {/* Three small cards */}
+        <div className="w-full flex flex-wrap" style={{ gap: 12 }}>
+          <SmallCard
+            image="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=640&q=80&auto=format&fit=crop"
+            title="Top 10 digital agency software"
+            badge="TOOLS"
+          />
+          <SmallCard
+            image="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=640&q=80&auto=format&fit=crop"
+            title="A complete guide to project success in 2026"
+            badge="INSIGHT"
+          />
+          <SmallCard
+            image="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=640&q=80&auto=format&fit=crop"
+            title="What Are Billable Hours"
+            badge="MANAGEMENT"
+          />
         </div>
       </div>
     </section>

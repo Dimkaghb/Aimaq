@@ -36,20 +36,19 @@ const MAIN_NAV: NavItem[] = [
     ),
   },
   {
-    label: "Clients",
-    href: "/dashboard/clients",
+    label: "Vendors",
+    href: "/dashboard/vendors",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M6 2h12l-1.5 7h-9L6 2z" />
+        <path d="M5 9v13h14V9" />
+        <path d="M9 13h6" />
       </svg>
     ),
   },
   {
-    label: "Projects",
-    href: "/dashboard/projects",
+    label: "Businesses",
+    href: "/dashboard/businesses",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -57,71 +56,12 @@ const MAIN_NAV: NavItem[] = [
     ),
   },
   {
-    label: "Time tracking",
-    href: "/dashboard/time",
+    label: "Map",
+    href: "/app",
     icon: (
       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-  },
-];
-
-const TOOLS_NAV: NavItem[] = [
-  {
-    label: "Invoices",
-    href: "/dashboard/invoices",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <polyline points="10 9 9 9 8 9" />
-      </svg>
-    ),
-  },
-  {
-    label: "Contracts",
-    href: "/dashboard/contracts",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M14 2v6h6" />
-        <line x1="12" y1="18" x2="12" y2="12" />
-        <line x1="9" y1="15" x2="15" y2="15" />
-      </svg>
-    ),
-  },
-  {
-    label: "Balance",
-    href: "/dashboard/balance",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Accounting",
-    href: "/dashboard/accounting",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="18" rx="2" />
-        <line x1="2" y1="9" x2="22" y2="9" />
-        <line x1="10" y1="9" x2="10" y2="21" />
-      </svg>
-    ),
-  },
-  {
-    label: "Taxes",
-    href: "/dashboard/taxes",
-    icon: (
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-        <line x1="4" y1="22" x2="4" y2="15" />
+        <path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10z" />
+        <circle cx="12" cy="11" r="3" />
       </svg>
     ),
   },
@@ -156,9 +96,11 @@ function getAdminNav(displayName: string): NavItem[] {
 function NavLink({
   item,
   active,
+  collapsed,
 }: {
   item: NavItem;
   active: boolean;
+  collapsed: boolean;
 }) {
   return (
     <Link
@@ -175,7 +117,7 @@ function NavLink({
       <span style={{ color: active ? "var(--neutral-30)" : "var(--neutral-10)", flexShrink: 0 }}>
         {item.icon}
       </span>
-      {item.label}
+      {!collapsed && item.label}
     </Link>
   );
 }
@@ -197,14 +139,18 @@ interface SidebarProps {
 
 export function Sidebar({ userName }: SidebarProps) {
   const [activePath] = useState("/dashboard");
+  const [collapsed, setCollapsed] = useState(false);
+
+  const width = collapsed ? 64 : 200;
 
   return (
     <aside
       className="flex flex-col flex-shrink-0 h-full overflow-y-auto"
       style={{
-        width: 200,
+        width,
         backgroundColor: "var(--beige-10)",
         borderRight: "1px solid var(--stroke)",
+        transition: "width 200ms ease",
       }}
     >
       {/* Logo row */}
@@ -213,13 +159,15 @@ export function Sidebar({ userName }: SidebarProps) {
         style={{ padding: "16px 14px 8px" }}
       >
         <Link href="/" className="flex items-center gap-2">
-          <AimaqLogo />
-          <span
-            className="font-semibold tracking-[-0.02em]"
-            style={{ fontSize: 16, color: "var(--neutral-30)" }}
-          >
-            Aimaq
-          </span>
+          {!collapsed && <AimaqLogo />}
+          {!collapsed && (
+            <span
+              className="font-semibold tracking-[-0.02em]"
+              style={{ fontSize: 16, color: "var(--neutral-30)" }}
+            >
+              Aimaq
+            </span>
+          )}
         </Link>
         <button
           type="button"
@@ -232,11 +180,36 @@ export function Sidebar({ userName }: SidebarProps) {
             cursor: "pointer",
             color: "var(--neutral-10)",
           }}
+          aria-label={collapsed ? "Открыть сайдбар" : "Закрыть сайдбар"}
+          onClick={() => setCollapsed((v) => !v)}
         >
-          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          {collapsed ? (
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="10 17 15 12 10 7" />
+            </svg>
+          ) : (
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="14 17 9 12 14 7" />
+            </svg>
+          )}
         </button>
       </div>
 
@@ -244,7 +217,12 @@ export function Sidebar({ userName }: SidebarProps) {
       <nav className="flex flex-col flex-1" style={{ padding: "4px 8px", gap: 2 }}>
         <div className="flex flex-col" style={{ gap: 1 }}>
           {MAIN_NAV.map((item) => (
-            <NavLink key={item.label} item={item} active={activePath === item.href} />
+            <NavLink
+              key={item.label}
+              item={item}
+              active={activePath === item.href}
+              collapsed={collapsed}
+            />
           ))}
         </div>
 
@@ -264,25 +242,22 @@ export function Sidebar({ userName }: SidebarProps) {
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
             <circle cx="12" cy="10" r="3" />
           </svg>
-          Find places
+          {!collapsed && "Find places"}
         </Link>
-
-        {/* Tools */}
-        <div className="flex flex-col" style={{ gap: 1, marginTop: 20 }}>
-          <SectionLabel label="Tools" />
-          {TOOLS_NAV.map((item) => (
-            <NavLink key={item.label} item={item} active={activePath === item.href} />
-          ))}
-        </div>
 
         {/* Spacer */}
         <div className="flex-1" />
 
         {/* Admin */}
         <div className="flex flex-col" style={{ gap: 1, marginBottom: 12 }}>
-          <SectionLabel label="Administration" />
+          {!collapsed && <SectionLabel label="Administration" />}
           {getAdminNav(userName ?? "Profile").map((item) => (
-            <NavLink key={item.label} item={item} active={activePath === item.href} />
+            <NavLink
+              key={item.label}
+              item={item}
+              active={activePath === item.href}
+              collapsed={collapsed}
+            />
           ))}
         </div>
       </nav>

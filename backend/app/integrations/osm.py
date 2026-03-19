@@ -72,6 +72,50 @@ out body;
             log.warning("osm_get_bus_stops_failed", lat=lat, lng=lng, error=str(e))
             return []
 
+    async def count_bus_stops_batch(
+        self, coords: list[tuple[float, float]], radius: int = 300
+    ) -> dict[tuple[float, float], int]:
+        """Count bus stops for multiple coordinates in a single Overpass query.
+
+        Returns a dict mapping (lat, lng) → bus_stop_count.
+        """
+        if not coords:
+            return {}
+
+        # Build a single union query for all coordinates
+        union_parts = "\n".join(
+            f'node["highway"="bus_stop"](around:{radius},{lat},{lng});'
+            for lat, lng in coords
+        )
+        query = f"[out:json];\n({union_parts}\n);\nout body;"
+
+        try:
+            elements = await self._query(query)
+        except Exception as e:
+            log.warning("osm_bus_stops_batch_failed", count=len(coords), error=str(e))
+            return {c: 0 for c in coords}
+
+        # Assign each bus stop to the nearest queried coordinate
+        result: dict[tuple[float, float], int] = {c: 0 for c in coords}
+        for el in elements:
+            el_lat = el.get("lat")
+            el_lon = el.get("lon")
+            if el_lat is None or el_lon is None:
+                continue
+            # Find closest coord
+            best_coord = min(
+                coords,
+                key=lambda c: (c[0] - el_lat) ** 2 + (c[1] - el_lon) ** 2,
+            )
+            result[best_coord] += 1
+
+        log.debug(
+            "osm_bus_stops_batch",
+            coords=len(coords),
+            total_stops=len(elements),
+        )
+        return result
+
     async def find_nearby_metro(
         self, lat: float, lng: float, radius: int = 800
     ) -> list[dict]:

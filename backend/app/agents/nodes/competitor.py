@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import structlog
@@ -6,42 +7,45 @@ from app.agents.state import PipelineState
 
 log = structlog.get_logger()
 
+# Max concurrent 2GIS API requests
+_SEMAPHORE = asyncio.Semaphore(10)
+
 
 async def competitor_node(state: PipelineState) -> dict:
     """Count competitors near each listing via 2GIS API.
 
+    Runs API calls concurrently (up to 10 at a time) instead of sequentially.
     Returns competitor_results: [{listing_id, competitor_count}, ...]
     """
     t0 = time.monotonic()
     errors: list[str] = []
-    results: list[dict] = []
 
     from app.integrations.gis2 import TwoGISClient
 
-    async with TwoGISClient() as client:
-        for listing in state["raw_listings"]:
-            listing_id = listing.get("id")
-            lat = listing.get("lat")
-            lng = listing.get("lng")
+    async def _fetch_one(
+        client: TwoGISClient, listing: dict, business_type: str
+    ) -> dict:
+        listing_id = listing.get("id")
+        lat = listing.get("lat")
+        lng = listing.get("lng")
 
-            if lat is None or lng is None:
-                results.append({"listing_id": listing_id, "competitor_count": 0})
-                continue
+        if lat is None or lng is None:
+            return {"listing_id": listing_id, "competitor_count": 0}
 
+        async with _SEMAPHORE:
             try:
-                count = await client.count_competitors(
-                    lat, lng, state["business_type"]
-                )
-                results.append({
-                    "listing_id": listing_id,
-                    "competitor_count": count,
-                })
+                count = await client.count_competitors(lat, lng, business_type)
+                return {"listing_id": listing_id, "competitor_count": count}
             except Exception as e:
                 errors.append(f"competitor_node: {listing_id} — {e}")
-                results.append({
-                    "listing_id": listing_id,
-                    "competitor_count": 0,
-                })
+                return {"listing_id": listing_id, "competitor_count": 0}
+
+    async with TwoGISClient() as client:
+        tasks = [
+            _fetch_one(client, listing, state["business_type"])
+            for listing in state["raw_listings"]
+        ]
+        results = await asyncio.gather(*tasks)
 
     log.debug(
         "competitor_node_done",
@@ -51,6 +55,6 @@ async def competitor_node(state: PipelineState) -> dict:
     )
 
     return {
-        "competitor_results": results,
+        "competitor_results": list(results),
         "errors": errors,
     }

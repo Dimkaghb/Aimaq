@@ -13,6 +13,7 @@ export function useSearchPolling() {
   const setAppState = useLocationIQStore((s) => s.setAppState);
   const setListings = useLocationIQStore((s) => s.setListings);
   const setPipelineStatus = useLocationIQStore((s) => s.setPipelineStatus);
+  const setExplanation = useLocationIQStore((s) => s.setExplanation);
 
   const isPolling = appState === "loading" && sessionId !== null;
 
@@ -31,16 +32,17 @@ export function useSearchPolling() {
   useEffect(() => {
     if (!query.data) return;
 
-    const { status, top_listings } = query.data;
+    const { status, results, explanation } = query.data;
     setPipelineStatus(status);
 
-    if (status === "complete" && top_listings) {
-      setListings(top_listings);
+    if (status === "complete" && results && results.length > 0) {
+      setListings(results);
+      if (explanation) setExplanation(explanation);
       setAppState("results");
     } else if (status === "failed") {
       setAppState("idle");
     }
-  }, [query.data, setPipelineStatus, setListings, setAppState]);
+  }, [query.data, setPipelineStatus, setListings, setAppState, setExplanation]);
 
   return query;
 }

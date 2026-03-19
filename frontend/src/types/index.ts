@@ -1,14 +1,23 @@
-export type BusinessType = "fastfood" | "office" | "retail" | "pharmacy" | "other";
-export type AppState = "idle" | "loading" | "results" | "detail" | "contact";
-export type District =
-  | "Алмалы"
-  | "Медеу"
-  | "Бостандык"
-  | "Алатау"
-  | "Ауэзов"
-  | "Жетысу"
-  | "Турксиб"
-  | "Наурызбай";
+export type BusinessType = "fastfood" | "cafe" | "office" | "retail" | "pharmacy";
+export type AppState = "idle" | "form" | "loading" | "results" | "detail" | "contact";
+
+// Districts: Russian display names → English API values
+export const DISTRICT_MAP: Record<string, string> = {
+  "Алмалы": "Almaly",
+  "Медеу": "Medeu",
+  "Бостандык": "Bostandyk",
+  "Алатау": "Alatau",
+  "Ауэзов": "Auezov",
+  "Жетысу": "Zhetysu",
+  "Турксиб": "Turksib",
+  "Наурызбай": "Nauryzbai",
+};
+
+export const DISTRICT_REVERSE_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(DISTRICT_MAP).map(([ru, en]) => [en, ru])
+);
+
+export type District = keyof typeof DISTRICT_MAP;
 
 export interface ScoreBreakdown {
   footfall: number;
@@ -19,35 +28,48 @@ export interface ScoreBreakdown {
 }
 
 export interface ScoredListing {
-  id: string;
+  listing_id: string;
+  rank: number;
+  title: string;
   address: string;
-  lat: number;
-  lng: number;
-  price_tenge: number;
-  area_sqm: number;
+  district: string | null;
+  lat: number | null;
+  lng: number | null;
+  price_tenge: number | null;
+  area_sqm: number | null;
   total_score: number;
   score_breakdown: ScoreBreakdown;
-  explanation: string;
-  source: "krisha" | "olx";
-  external_url: string | null;
+  url: string;
+  competitor_count: number;
+  bus_stops_nearby: number;
+  metro_distance_m: number | null;
+  nearest_metro_name: string | null;
 }
 
 export interface SearchRequest {
   business_type: BusinessType;
   district: string | null;
-  budget_tenge: number;
-  area_sqm_min: number;
+  budget_tenge: number | null;
+  area_sqm_min: number | null;
   competitor_tolerance: number;
 }
 
 export interface SearchResponse {
   session_id: string;
+  status: string;
+  message: string;
 }
 
 export interface PollResponse {
+  session_id: string;
   status: string;
-  top_listings: ScoredListing[] | null;
+  business_type: string;
+  district: string | null;
+  budget_tenge: number | null;
+  total_evaluated: number;
+  explanation: string;
   error_message: string | null;
+  results: ScoredListing[];
 }
 
 export interface ContactResponse {

@@ -42,9 +42,9 @@ export function ScoreCard({
     setContactLoading(true);
     setContactError(null);
     try {
-      const draft = await postContact(sessionId, listing.id);
+      const draft = await postContact(sessionId, listing.listing_id);
       setContactDraft(draft);
-      setActiveListingId(listing.id);
+      setActiveListingId(listing.listing_id);
       setAppState("contact");
     } catch {
       setContactError("Не удалось сгенерировать письмо. Попробуйте ещё раз.");
@@ -56,7 +56,7 @@ export function ScoreCard({
   function handleCardClick() {
     if (!isExpanded) {
       onExpand();
-      setActiveListingId(listing.id);
+      setActiveListingId(listing.listing_id);
     }
   }
 
@@ -96,7 +96,7 @@ export function ScoreCard({
           </p>
           <div className="flex items-center flex-wrap" style={{ gap: 6 }}>
             <span className="text-[13px]" style={{ color: "var(--neutral-20)" }}>
-              {formatPrice(listing.price_tenge)}
+              {listing.price_tenge != null ? formatPrice(listing.price_tenge) : "Цена не указана"}
             </span>
             <span
               className="text-[11px] rounded-full px-2 py-0.5"
@@ -105,7 +105,7 @@ export function ScoreCard({
                 color: "var(--neutral-10)",
               }}
             >
-              {formatArea(listing.area_sqm)}
+              {listing.area_sqm != null ? formatArea(listing.area_sqm) : "—"}
             </span>
           </div>
 
@@ -159,12 +159,12 @@ export function ScoreCard({
         <span
           className="text-[11px] rounded-full px-2 py-0.5"
           style={{
-            backgroundColor: listing.source === "krisha" ? "var(--blue-10)" : "var(--beige-10)",
-            color: listing.source === "krisha" ? "var(--accent-blue)" : "var(--neutral-10)",
+            backgroundColor: "var(--blue-10)",
+            color: "var(--accent-blue)",
             fontWeight: 500,
           }}
         >
-          {listing.source === "krisha" ? "Krisha.kz" : "OLX.kz"}
+          Krisha.kz
         </span>
       </div>
 
@@ -174,12 +174,23 @@ export function ScoreCard({
           className="px-4 pb-4 flex flex-col border-t"
           style={{ gap: 14, borderColor: "var(--stroke)" }}
         >
-          {/* Explanation */}
-          <p
-            className="leading-relaxed pt-3"
-            style={{ fontSize: 14, color: "var(--neutral-20)" }}
-          >
-            {listing.explanation}
+          {/* Listing details */}
+          {listing.title && (
+            <p
+              className="font-medium pt-3"
+              style={{ fontSize: 14, color: "var(--neutral-30)" }}
+            >
+              {listing.title}
+            </p>
+          )}
+          {listing.nearest_metro_name && (
+            <p className="text-[13px]" style={{ color: "var(--neutral-10)" }}>
+              Ближайшее метро: {listing.nearest_metro_name}
+              {listing.metro_distance_m != null && ` (${Math.round(listing.metro_distance_m)} м)`}
+            </p>
+          )}
+          <p className="text-[13px]" style={{ color: "var(--neutral-10)" }}>
+            Остановки рядом: {listing.bus_stops_nearby} · Конкуренты: {listing.competitor_count}
           </p>
 
           {/* Score breakdown */}
@@ -240,9 +251,9 @@ export function ScoreCard({
               Показать на карте
             </button>
 
-            {listing.external_url && (
+            {listing.url && (
               <a
-                href={listing.external_url}
+                href={listing.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-center text-[13px] font-medium underline"

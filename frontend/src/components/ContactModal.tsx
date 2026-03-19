@@ -13,7 +13,7 @@ export function ContactModal() {
   const [activeTab, setActiveTab] = useState<"ru" | "en">("ru");
   const [copied, setCopied] = useState(false);
 
-  const activeListing = listings.find((l) => l.id === activeListingId);
+  const activeListing = listings.find((l) => l.listing_id === activeListingId);
 
   function handleClose() {
     setContactDraft(null);

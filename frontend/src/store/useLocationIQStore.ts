@@ -33,6 +33,9 @@ interface LocationIQStore {
   expandedListingId: string | null;
   setExpandedListingId: (id: string | null) => void;
 
+  explanation: string;
+  setExplanation: (e: string) => void;
+
   contactDraft: ContactResponse | null;
   setContactDraft: (d: ContactResponse | null) => void;
 
@@ -71,6 +74,9 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
   expandedListingId: null,
   setExpandedListingId: (id) => set({ expandedListingId: id }),
 
+  explanation: "",
+  setExplanation: (e) => set({ explanation: e }),
+
   contactDraft: null,
   setContactDraft: (d) => set({ contactDraft: d }),
 
@@ -86,6 +92,7 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
       listings: [],
       activeListingId: null,
       expandedListingId: null,
+      explanation: "",
       contactDraft: null,
       pipelineStatus: null,
       appState: "idle",

@@ -15,6 +15,7 @@ export function ResultsPanel() {
   const setExpandedListingId = useLocationIQStore((s) => s.setExpandedListingId);
   const setAppState = useLocationIQStore((s) => s.setAppState);
   const pipelineStatus = useLocationIQStore((s) => s.pipelineStatus);
+  const explanation = useLocationIQStore((s) => s.explanation);
 
   const isIdle = appState === "idle";
   const isLoading = appState === "loading";
@@ -87,17 +88,40 @@ export function ResultsPanel() {
           </div>
         )}
 
+        {isResults && explanation && (
+          <div
+            className="rounded-xl p-3"
+            style={{
+              backgroundColor: "var(--blue-10)",
+              border: "1px solid rgba(59,130,246,0.15)",
+            }}
+          >
+            <p
+              className="font-semibold"
+              style={{ fontSize: 12, color: "var(--accent-blue)", marginBottom: 4 }}
+            >
+              ИИ-анализ
+            </p>
+            <p
+              className="leading-relaxed"
+              style={{ fontSize: 13, color: "var(--neutral-20)", whiteSpace: "pre-line" }}
+            >
+              {explanation}
+            </p>
+          </div>
+        )}
+
         {isResults &&
           listings.map((listing, index) => (
-            <div key={listing.id} id={`card-${listing.id}`}>
+            <div key={listing.listing_id} id={`card-${listing.listing_id}`}>
               <ScoreCard
                 listing={listing}
-                rank={index + 1}
-                isActive={listing.id === activeListingId}
-                isExpanded={listing.id === expandedListingId}
-                onExpand={() => handleExpand(listing.id)}
+                rank={listing.rank ?? index + 1}
+                isActive={listing.listing_id === activeListingId}
+                isExpanded={listing.listing_id === expandedListingId}
+                onExpand={() => handleExpand(listing.listing_id)}
                 onCollapse={handleCollapse}
-                onShowOnMap={() => handleShowOnMap(listing.id)}
+                onShowOnMap={() => handleShowOnMap(listing.listing_id)}
               />
             </div>
           ))}

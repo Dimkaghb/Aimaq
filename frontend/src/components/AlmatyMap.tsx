@@ -61,7 +61,7 @@ function ListingMarkers() {
 
       const rank = index + 1;
       const color = scoreToColor(listing.total_score);
-      const isActive = listing.id === activeListingId;
+      const isActive = listing.listing_id === activeListingId;
 
       const html = `
         <div class="liq-marker ${isActive ? "liq-marker--active" : ""}" 
@@ -88,11 +88,11 @@ function ListingMarkers() {
       );
 
       marker.on("click", () => {
-        setActiveListingId(listing.id);
-        setExpandedListingId(listing.id);
+        setActiveListingId(listing.listing_id);
+        setExpandedListingId(listing.listing_id);
         setAppState("detail");
 
-        const el = document.getElementById(`card-${listing.id}`);
+        const el = document.getElementById(`card-${listing.listing_id}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
 

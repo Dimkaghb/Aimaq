@@ -138,8 +138,8 @@ async def get_search_status(session_id: str) -> SearchSessionStatus:
         business_type=session["business_type"],
         district=session.get("district"),
         budget_tenge=session.get("budget_tenge"),
-        total_evaluated=session.get("total_evaluated", 0),
-        explanation=session.get("explanation", ""),
+        total_evaluated=session.get("total_evaluated") or 0,
+        explanation=session.get("explanation") or "",
         error_message=session.get("error_message"),
         results=results,
     )

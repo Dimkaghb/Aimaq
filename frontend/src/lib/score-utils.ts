@@ -129,6 +129,17 @@ export function getWeightsForType(type: BusinessType | null): {
           { label: "Площадь", percent: 10 },
         ],
       };
+    case "cafe":
+      return {
+        title: "Как мы выбираем лучшее место для кафе",
+        weights: [
+          { label: "Трафик", percent: 35 },
+          { label: "Конкуренты", percent: 25 },
+          { label: "Цена", percent: 20 },
+          { label: "Транспорт", percent: 15 },
+          { label: "Площадь", percent: 5 },
+        ],
+      };
     default:
       return {
         title: "Выберите тип бизнеса",

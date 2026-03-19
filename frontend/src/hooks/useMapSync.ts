@@ -14,7 +14,7 @@ export function useMapSync(mapRef: React.MutableRefObject<LeafletMap | null>) {
     prevActiveRef.current = activeListingId;
 
     if (!activeListingId) return;
-    const listing = listings.find((l) => l.id === activeListingId);
+    const listing = listings.find((l) => l.listing_id === activeListingId);
     if (!listing) return;
 
     const { lat, lng } = listing;

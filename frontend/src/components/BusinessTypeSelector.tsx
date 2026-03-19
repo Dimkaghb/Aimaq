@@ -57,13 +57,14 @@ const TILES: Tile[] = [
     ),
   },
   {
-    value: "other",
-    label: "Другое",
+    value: "cafe",
+    label: "Кафе",
     icon: (
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
+        <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+        <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z" />
+        <path d="M6 2v3" />
+        <path d="M10 2v3" />
       </svg>
     ),
   },

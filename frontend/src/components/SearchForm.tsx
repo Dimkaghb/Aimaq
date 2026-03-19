@@ -5,6 +5,7 @@ import { BusinessTypeSelector } from "./BusinessTypeSelector";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { postSearch } from "@/lib/api";
 import { formatNumber } from "@/lib/score-utils";
+import { DISTRICT_MAP } from "@/types";
 
 const DISTRICTS = [
   "Любой",
@@ -69,9 +70,12 @@ export function SearchForm() {
     });
 
     try {
+      // Map Russian district name to English for the API
+      const apiDistrict = district ? (DISTRICT_MAP[district] ?? district) : null;
+
       const res = await postSearch({
         business_type: businessType,
-        district: district,
+        district: apiDistrict,
         budget_tenge: budgetTenge,
         area_sqm_min: areaSqmMin,
         competitor_tolerance: isOffice ? 0 : competitorTolerance,

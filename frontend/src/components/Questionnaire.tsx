@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { BusinessType } from "@/types";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { postSearch } from "@/lib/api";
@@ -246,255 +247,263 @@ export function Questionnaire({ onBack }: QuestionnaireProps) {
           </p>
         </div>
 
-        {/* ── Step 1: Business Info ─────────────────────────────── */}
-        {step === 1 && (
-          <div className="flex flex-col" style={{ gap: 24 }}>
-            {/* Industry */}
-            <div className="flex flex-col" style={{ gap: 10 }}>
-              <FieldLabel>Тип бизнеса</FieldLabel>
-              <div className="flex flex-wrap" style={{ gap: 8 }}>
-                {BIZ_OPTIONS.map((o) => (
-                  <Pill
-                    key={o.value}
-                    active={businessType === o.value}
-                    onClick={() => setBusinessType(o.value)}
-                  >
-                    {o.label}
-                  </Pill>
-                ))}
+        {/* Step content with smooth transitions */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            layout
+            initial={{ opacity: 0, y: 14, scale: 0.995, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -10, scale: 0.995, filter: "blur(6px)" }}
+            transition={{
+              duration: 0.26,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            {/* ── Step 1: Business Info ─────────────────────────────── */}
+            {step === 1 && (
+              <div className="flex flex-col" style={{ gap: 24 }}>
+                {/* Industry */}
+                <div className="flex flex-col" style={{ gap: 10 }}>
+                  <FieldLabel>Тип бизнеса</FieldLabel>
+                  <div className="flex flex-wrap" style={{ gap: 8 }}>
+                    {BIZ_OPTIONS.map((o) => (
+                      <Pill
+                        key={o.value}
+                        active={businessType === o.value}
+                        onClick={() => setBusinessType(o.value)}
+                      >
+                        {o.label}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Business name — optional, not sent to API */}
+                <div className="flex flex-col" style={{ gap: 8 }}>
+                  <FieldLabel>
+                    Название бизнеса
+                    <OptionalTag />
+                  </FieldLabel>
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="Например, «Кофе с собой»"
+                    className="w-full rounded-xl"
+                    style={{
+                      padding: "12px 16px",
+                      fontSize: 15,
+                      color: "var(--neutral-30)",
+                      border: "1.5px solid var(--stroke)",
+                      backgroundColor: "rgba(255,255,255,0.6)",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Description — optional, not sent to API */}
+                <div className="flex flex-col" style={{ gap: 8 }}>
+                  <FieldLabel>
+                    Краткое описание
+                    <OptionalTag />
+                  </FieldLabel>
+                  <textarea
+                    value={businessDesc}
+                    onChange={(e) => setBusinessDesc(e.target.value)}
+                    placeholder="Чем занимается ваш бизнес, целевая аудитория..."
+                    rows={3}
+                    className="w-full rounded-xl resize-none"
+                    style={{
+                      padding: "12px 16px",
+                      fontSize: 15,
+                      color: "var(--neutral-30)",
+                      border: "1.5px solid var(--stroke)",
+                      backgroundColor: "rgba(255,255,255,0.6)",
+                      outline: "none",
+                      lineHeight: 1.5,
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-
-            {/* Business name — optional, not sent to API */}
-            <div className="flex flex-col" style={{ gap: 8 }}>
-              <FieldLabel>
-                Название бизнеса
-                <OptionalTag />
-              </FieldLabel>
-              <input
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Например, «Кофе с собой»"
-                className="w-full rounded-xl"
-                style={{
-                  padding: "12px 16px",
-                  fontSize: 15,
-                  color: "var(--neutral-30)",
-                  border: "1.5px solid var(--stroke)",
-                  backgroundColor: "rgba(255,255,255,0.6)",
-                  outline: "none",
-                }}
-              />
-            </div>
-
-            {/* Description — optional, not sent to API */}
-            <div className="flex flex-col" style={{ gap: 8 }}>
-              <FieldLabel>
-                Краткое описание
-                <OptionalTag />
-              </FieldLabel>
-              <textarea
-                value={businessDesc}
-                onChange={(e) => setBusinessDesc(e.target.value)}
-                placeholder="Чем занимается ваш бизнес, целевая аудитория..."
-                rows={3}
-                className="w-full rounded-xl resize-none"
-                style={{
-                  padding: "12px 16px",
-                  fontSize: 15,
-                  color: "var(--neutral-30)",
-                  border: "1.5px solid var(--stroke)",
-                  backgroundColor: "rgba(255,255,255,0.6)",
-                  outline: "none",
-                  lineHeight: 1.5,
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 2: Location & Budget ────────────────────────── */}
-        {step === 2 && (
-          <div className="flex flex-col" style={{ gap: 28 }}>
-            {/* District */}
-            <div className="flex flex-col" style={{ gap: 10 }}>
-              <FieldLabel>Район Алматы</FieldLabel>
-              <div className="flex flex-wrap" style={{ gap: 8 }}>
-                <Pill
-                  active={district === null}
-                  onClick={() => setDistrict(null)}
-                >
-                  Любой район
-                </Pill>
-                {DISTRICTS.map((d) => (
-                  <Pill
-                    key={d}
-                    active={district === d}
-                    onClick={() => setDistrict(d)}
-                  >
-                    {d}
-                  </Pill>
-                ))}
-              </div>
-            </div>
-
-            {/* Budget */}
-            <div className="flex flex-col" style={{ gap: 10 }}>
-              <FieldLabel>Бюджет аренды</FieldLabel>
-              <span
-                className="font-bold tracking-tight"
-                style={{
-                  fontSize: 32,
-                  color: "var(--neutral-30)",
-                  lineHeight: 1,
-                }}
-              >
-                {formatNumber(budgetTenge)}{" "}
-                <span
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 500,
-                    color: "var(--neutral-10)",
-                  }}
-                >
-                  ₸/мес
-                </span>
-              </span>
-              <input
-                type="range"
-                min={100000}
-                max={5000000}
-                step={50000}
-                value={budgetTenge}
-                onChange={(e) => setBudget(Number(e.target.value))}
-                className="w-full accent-neutral-800"
-              />
-              <div className="flex justify-between">
-                <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
-                  100 000 ₸
-                </span>
-                <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
-                  5 000 000 ₸
-                </span>
-              </div>
-            </div>
-
-            {/* Area */}
-            <div className="flex flex-col" style={{ gap: 8 }}>
-              <FieldLabel>Минимальная площадь</FieldLabel>
-              <div className="relative flex items-center">
-                <input
-                  type="number"
-                  min={10}
-                  max={5000}
-                  step={10}
-                  value={areaSqmMin}
-                  onChange={(e) =>
-                    setArea(Math.max(10, Math.round(Number(e.target.value))))
-                  }
-                  className="w-full rounded-xl"
-                  style={{
-                    padding: "12px 44px 12px 16px",
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: "var(--neutral-30)",
-                    border: "1.5px solid var(--stroke)",
-                    backgroundColor: "rgba(255,255,255,0.6)",
-                    outline: "none",
-                  }}
-                />
-                <span
-                  className="absolute right-4 font-medium"
-                  style={{ fontSize: 14, color: "var(--neutral-10)" }}
-                >
-                  м²
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Step 3: Competition ──────────────────────────────── */}
-        {step === 3 && (
-          <div className="flex flex-col" style={{ gap: 24 }}>
-            {/* Toggle: don't care about competitors */}
-            <label
-              className="flex items-center gap-3 cursor-pointer select-none rounded-xl"
-              style={{
-                padding: "14px 16px",
-                backgroundColor: "rgba(255,255,255,0.6)",
-                border: "1.5px solid var(--stroke)",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={noCompetitorConcern}
-                onChange={(e) => setNoCompetitorConcern(e.target.checked)}
-                disabled={isOffice}
-                className="accent-neutral-800"
-                style={{ width: 18, height: 18, cursor: "pointer" }}
-              />
-              <div className="flex flex-col" style={{ gap: 2 }}>
-                <span
-                  className="font-medium"
-                  style={{ fontSize: 15, color: "var(--neutral-30)" }}
-                >
-                  Конкуренты не важны
-                </span>
-                <span style={{ fontSize: 13, color: "var(--neutral-10)" }}>
-                  Не учитывать количество конкурентов при оценке
-                </span>
-              </div>
-            </label>
-
-            {/* Competitor slider */}
-            <div
-              className="flex flex-col transition-opacity"
-              style={{
-                gap: 10,
-                opacity: competitorDisabled ? 0.35 : 1,
-                pointerEvents: competitorDisabled ? "none" : "auto",
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <FieldLabel>Допустимые конкуренты поблизости</FieldLabel>
-                <span
-                  className="font-semibold"
-                  style={{ fontSize: 15, color: "var(--neutral-30)" }}
-                >
-                  {competitorDisabled ? "—" : competitorTolerance}
-                </span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={10}
-                step={1}
-                value={competitorTolerance}
-                disabled={competitorDisabled}
-                onChange={(e) =>
-                  setCompetitorTolerance(Number(e.target.value))
-                }
-                className="w-full accent-neutral-800 disabled:cursor-not-allowed"
-              />
-              <div className="flex justify-between">
-                <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
-                  0 — нет конкурентов
-                </span>
-                <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
-                  10 — не важно
-                </span>
-              </div>
-            </div>
-
-            {isOffice && (
-              <p style={{ fontSize: 13, color: "var(--neutral-10)" }}>
-                Для офисных помещений конкуренция не учитывается.
-              </p>
             )}
-          </div>
-        )}
+
+            {/* ── Step 2: Location & Budget ────────────────────────── */}
+            {step === 2 && (
+              <div className="flex flex-col" style={{ gap: 28 }}>
+                {/* District */}
+                <div className="flex flex-col" style={{ gap: 10 }}>
+                  <FieldLabel>Район Алматы</FieldLabel>
+                  <div className="flex flex-wrap" style={{ gap: 8 }}>
+                    <Pill active={district === null} onClick={() => setDistrict(null)}>
+                      Любой район
+                    </Pill>
+                    {DISTRICTS.map((d) => (
+                      <Pill key={d} active={district === d} onClick={() => setDistrict(d)}>
+                        {d}
+                      </Pill>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget */}
+                <div className="flex flex-col" style={{ gap: 10 }}>
+                  <FieldLabel>Бюджет аренды</FieldLabel>
+                  <span
+                    className="font-bold tracking-tight"
+                    style={{
+                      fontSize: 32,
+                      color: "var(--neutral-30)",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {formatNumber(budgetTenge)}{" "}
+                    <span
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: "var(--neutral-10)",
+                      }}
+                    >
+                      ₸/мес
+                    </span>
+                  </span>
+                  <input
+                    type="range"
+                    min={100000}
+                    max={5000000}
+                    step={50000}
+                    value={budgetTenge}
+                    onChange={(e) => setBudget(Number(e.target.value))}
+                    className="w-full accent-neutral-800"
+                  />
+                  <div className="flex justify-between">
+                    <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
+                      100 000 ₸
+                    </span>
+                    <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
+                      5 000 000 ₸
+                    </span>
+                  </div>
+                </div>
+
+                {/* Area */}
+                <div className="flex flex-col" style={{ gap: 8 }}>
+                  <FieldLabel>Минимальная площадь</FieldLabel>
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      min={10}
+                      max={5000}
+                      step={10}
+                      value={areaSqmMin}
+                      onChange={(e) =>
+                        setArea(Math.max(10, Math.round(Number(e.target.value))))
+                      }
+                      className="w-full rounded-xl"
+                      style={{
+                        padding: "12px 44px 12px 16px",
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: "var(--neutral-30)",
+                        border: "1.5px solid var(--stroke)",
+                        backgroundColor: "rgba(255,255,255,0.6)",
+                        outline: "none",
+                      }}
+                    />
+                    <span
+                      className="absolute right-4 font-medium"
+                      style={{ fontSize: 14, color: "var(--neutral-10)" }}
+                    >
+                      м²
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 3: Competition ──────────────────────────────── */}
+            {step === 3 && (
+              <div className="flex flex-col" style={{ gap: 24 }}>
+                {/* Toggle: don't care about competitors */}
+                <label
+                  className="flex items-center gap-3 cursor-pointer select-none rounded-xl"
+                  style={{
+                    padding: "14px 16px",
+                    backgroundColor: "rgba(255,255,255,0.6)",
+                    border: "1.5px solid var(--stroke)",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={noCompetitorConcern}
+                    onChange={(e) => setNoCompetitorConcern(e.target.checked)}
+                    disabled={isOffice}
+                    className="accent-neutral-800"
+                    style={{ width: 18, height: 18, cursor: "pointer" }}
+                  />
+                  <div className="flex flex-col" style={{ gap: 2 }}>
+                    <span
+                      className="font-medium"
+                      style={{ fontSize: 15, color: "var(--neutral-30)" }}
+                    >
+                      Конкуренты не важны
+                    </span>
+                    <span style={{ fontSize: 13, color: "var(--neutral-10)" }}>
+                      Не учитывать количество конкурентов при оценке
+                    </span>
+                  </div>
+                </label>
+
+                {/* Competitor slider */}
+                <div
+                  className="flex flex-col transition-opacity"
+                  style={{
+                    gap: 10,
+                    opacity: competitorDisabled ? 0.35 : 1,
+                    pointerEvents: competitorDisabled ? "none" : "auto",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <FieldLabel>Допустимые конкуренты поблизости</FieldLabel>
+                    <span
+                      className="font-semibold"
+                      style={{ fontSize: 15, color: "var(--neutral-30)" }}
+                    >
+                      {competitorDisabled ? "—" : competitorTolerance}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={10}
+                    step={1}
+                    value={competitorTolerance}
+                    disabled={competitorDisabled}
+                    onChange={(e) =>
+                      setCompetitorTolerance(Number(e.target.value))
+                    }
+                    className="w-full accent-neutral-800 disabled:cursor-not-allowed"
+                  />
+                  <div className="flex justify-between">
+                    <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
+                      0 — нет конкурентов
+                    </span>
+                    <span style={{ fontSize: 12, color: "var(--neutral-10)" }}>
+                      10 — не важно
+                    </span>
+                  </div>
+                </div>
+
+                {isOffice && (
+                  <p style={{ fontSize: 13, color: "var(--neutral-10)" }}>
+                    Для офисных помещений конкуренция не учитывается.
+                  </p>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Error */}
         {error && (

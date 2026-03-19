@@ -3,6 +3,8 @@
 /* Framer source: nodeId XMdTlq4yH (LogosTicker)
    Ticker speed=20, direction=left, gap=40px, height=55px, maxWidth=900px */
 
+import { FadeUp } from "./motion";
+
 const logos: { name: string; svg: React.ReactNode }[] = [
   {
     name: "Notion",
@@ -91,7 +93,7 @@ export function LogosTicker() {
 
   return (
     <section className="w-full flex justify-center px-6 py-16">
-      <div
+      <FadeUp
         className="flex flex-col items-center gap-4 w-full"
         style={{ maxWidth: "1072px" }}
       >
@@ -121,7 +123,7 @@ export function LogosTicker() {
             ))}
           </div>
         </div>
-      </div>
+      </FadeUp>
     </section>
   );
 }

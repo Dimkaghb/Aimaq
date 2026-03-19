@@ -1,3 +1,5 @@
+"use client";
+
 /* Framer source: nodeId kD9B4CiVi (Blog)
    Eyebrow "BLOG" | Heading 2 "Ideas to level-up your freelance game"
    WideDesktop card: height=480, gap=0, horizontal stack
@@ -11,6 +13,7 @@
    Author avatars: circle initials DP bg=#8da6bb */
 
 import Image from "next/image";
+import { FadeUp, StaggerGroup, StaggerItem } from "./motion";
 
 /* ── Author component ─────────────────────────────────────── */
 function Author({ name, role }: { name: string; role: string }) {
@@ -187,7 +190,7 @@ export function Blog() {
   return (
     <section className="w-full flex flex-col items-center px-6" style={{ gap: 48 }}>
       {/* Header */}
-      <div className="flex flex-col items-center text-center" style={{ gap: 12 }}>
+      <FadeUp className="flex flex-col items-center text-center" style={{ gap: 12 }}>
         <span
           className="text-[13px] font-semibold tracking-[0.12em] uppercase"
           style={{ color: "var(--neutral-10)" }}
@@ -204,34 +207,39 @@ export function Blog() {
         >
           Ideas to level-up your freelance game
         </h2>
-      </div>
+      </FadeUp>
 
       {/* Cards wrapper — maxWidth=1072px */}
-      <div
-        className="w-full flex flex-col"
-        style={{ maxWidth: 1072, gap: 12 }}
-      >
-        {/* Featured wide card */}
-        <FeaturedCard />
+      <div className="w-full flex flex-col" style={{ maxWidth: 1072, gap: 12 }}>
+        {/* Featured wide card — fades up */}
+        <FadeUp>
+          <FeaturedCard />
+        </FadeUp>
 
-        {/* Three small cards */}
-        <div className="w-full flex flex-wrap" style={{ gap: 12 }}>
-          <SmallCard
-            image="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=640&q=80&auto=format&fit=crop"
-            title="Top 10 digital agency software"
-            badge="TOOLS"
-          />
-          <SmallCard
-            image="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=640&q=80&auto=format&fit=crop"
-            title="A complete guide to project success in 2026"
-            badge="INSIGHT"
-          />
-          <SmallCard
-            image="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=640&q=80&auto=format&fit=crop"
-            title="What Are Billable Hours"
-            badge="MANAGEMENT"
-          />
-        </div>
+        {/* Three small cards — staggered */}
+        <StaggerGroup className="w-full flex flex-wrap" style={{ gap: 12 }}>
+          <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
+            <SmallCard
+              image="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?w=640&q=80&auto=format&fit=crop"
+              title="Top 10 digital agency software"
+              badge="TOOLS"
+            />
+          </StaggerItem>
+          <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
+            <SmallCard
+              image="https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=640&q=80&auto=format&fit=crop"
+              title="A complete guide to project success in 2026"
+              badge="INSIGHT"
+            />
+          </StaggerItem>
+          <StaggerItem style={{ flex: "1 1 280px", minWidth: 0 }}>
+            <SmallCard
+              image="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=640&q=80&auto=format&fit=crop"
+              title="What Are Billable Hours"
+              badge="MANAGEMENT"
+            />
+          </StaggerItem>
+        </StaggerGroup>
       </div>
     </section>
   );

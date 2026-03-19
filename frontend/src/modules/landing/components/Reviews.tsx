@@ -1,8 +1,12 @@
+"use client";
+
 /* Framer source: nodeId fxPhAsuNv (Reviews)
    Container: maxWidth=1072px, gap=56px
    BigReview: maxWidth=900px — Testimonials style (64px medium centered), name + role
    DesktopTicker: height=288px, speed=40 → 40s CSS, direction=left, gap=24px, hoverFactor=0.5
    ReviewsCard: width=395px, bg=rgba(255,255,255,0.7), borderRadius=24px, padding=32px, gap=32px */
+
+import { FadeUp, FadeIn } from "./motion";
 
 const reviews = [
   {
@@ -147,8 +151,8 @@ export function Reviews() {
         className="flex flex-col items-center w-full"
         style={{ maxWidth: 1072, gap: 56 }}
       >
-        {/* BigReview — maxWidth 900px */}
-        <div
+        {/* BigReview — fades up */}
+        <FadeUp
           className="flex flex-col items-center gap-8 text-center w-full"
           style={{ maxWidth: 900 }}
         >
@@ -197,15 +201,11 @@ export function Reviews() {
               </span>
             </div>
           </div>
-        </div>
+        </FadeUp>
       </div>
 
       {/* Full-width reviews ticker — height 288px, bleeds outside container */}
-      {/* CSS mask fades work on any background color */}
-      <div
-        className="ticker-mask w-full overflow-hidden mt-14"
-        style={{ height: 288 }}
-      >
+      <FadeIn delay={0.2} className="ticker-mask w-full overflow-hidden mt-14" style={{ height: 288 }}>
         <div
           className="flex items-center h-full reviews-ticker-track"
           style={{ gap: 24, paddingLeft: 24 }}
@@ -214,7 +214,7 @@ export function Reviews() {
             <ReviewCard key={i} {...review} />
           ))}
         </div>
-      </div>
+      </FadeIn>
     </section>
   );
 }

@@ -30,6 +30,11 @@
 
 /* ── Sky gradient covers the full page (background-attachment: fixed
       so every section reveals a slice of the same sky as you scroll) ── */
+/* ── Smooth scrolling (matches Framer SmoothScroll intensity=10) ─── */
+html {
+  scroll-behavior: smooth;
+}
+
 html {
   background: linear-gradient(
     180deg,

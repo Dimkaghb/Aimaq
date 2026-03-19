@@ -1,3 +1,5 @@
+"use client";
+
 /* Framer source: nodeId hmZAdLJYc (Banner)
    Layout: horizontal stack, center distribution, center alignment
    Content: maxWidth=800, gap=32 vertical, center aligned
@@ -9,6 +11,7 @@
    Both clouds use real PNG assets from framerusercontent */
 
 import Link from "next/link";
+import { FadeUp } from "./motion";
 
 const CLOUD_LEFT  = "https://framerusercontent.com/images/iR8Ma0AjH7EaIAPThF3xcp9l3bM.png";
 const CLOUD_RIGHT = "https://framerusercontent.com/images/qazH0744I2w9AnpfmUJIze7g.png";
@@ -51,7 +54,7 @@ export function CTABanner() {
       />
 
       {/* Content: maxWidth=800, center, gap=32 */}
-      <div
+      <FadeUp
         className="relative z-10 flex flex-col items-center text-center w-full"
         style={{ maxWidth: 800, gap: 32 }}
       >
@@ -88,7 +91,7 @@ export function CTABanner() {
         >
           Try Freelio free
         </Link>
-      </div>
+      </FadeUp>
     </section>
   );
 }

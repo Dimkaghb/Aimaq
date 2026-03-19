@@ -7,6 +7,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { FadeUp, ScaleUp } from "./motion";
 
 const TABS = [
   {
@@ -34,7 +35,7 @@ export function AboutApp() {
         style={{ maxWidth: "1072px" }}
       >
         {/* Header */}
-        <div
+        <FadeUp
           className="flex flex-col items-center gap-5 w-full text-center"
           style={{ maxWidth: "800px" }}
         >
@@ -53,10 +54,10 @@ export function AboutApp() {
           >
             Work from anywhere, stay in sync
           </h2>
-        </div>
+        </FadeUp>
 
-        {/* Carousel card */}
-        <div
+        {/* Carousel card — scales up on scroll */}
+        <ScaleUp
           className="relative w-full overflow-hidden"
           style={{
             height: "700px",
@@ -79,7 +80,7 @@ export function AboutApp() {
             />
           </div>
 
-          {/* Toggle tabs — bottom center, matching Framer: bottom=32px, bg=rgba(255,255,255,0.25), borderRadius=40px */}
+          {/* Toggle tabs */}
           <div
             className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 p-2"
             style={{
@@ -112,7 +113,7 @@ export function AboutApp() {
               );
             })}
           </div>
-        </div>
+        </ScaleUp>
       </div>
     </section>
   );

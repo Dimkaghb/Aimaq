@@ -1,13 +1,17 @@
+"use client";
+
 /* Framer source: nodeId VMJGhIahi (Features)
    Container: maxWidth=1072px, gap=120px (between blocks)
    Block 1: image LEFT (minWidth=588px), text RIGHT — horizontal layout, gap=64px
    Block 2: text LEFT, image RIGHT — reversed
    Image panels: borderRadius=24px, bg=framerusercontent.com/g690a9Fxc6Y5G69sPCSKq4vjw, padding=40px
    Right text column: space-between (text top, pills grid bottom)
-   Pills grid: 2x2, gap=16px */
+   Pills grid: 2x2, gap=16px
+   Animations: image slides in from its side, text from the opposite side */
 
 import Image from "next/image";
 import Link from "next/link";
+import { SlideIn } from "./motion";
 
 /* FeaturesPill: borderRadius=100px, padding=12px 16px, icon 24px + Body Normal Medium label */
 function FeaturesPill({
@@ -218,40 +222,42 @@ export function Features() {
         className="flex flex-col w-full"
         style={{ maxWidth: "1072px", gap: "120px" }}
       >
-        {/* Block 1: image LEFT, text RIGHT */}
-        <div
-          className="flex flex-wrap items-stretch"
-          style={{ gap: "64px" }}
-        >
-          <ImagePanel
-            bgUrl={block1.imageBg}
-            illustrationUrl={block1.illustration}
-            alt="Dreelio project management — task board and time tracking interface"
-          />
-          <TextColumn
-            eyebrow={block1.eyebrow}
-            heading={block1.heading}
-            body={block1.body}
-            pills={block1.pills}
-          />
+        {/* Block 1: image LEFT slides in from left, text RIGHT slides in from right */}
+        <div className="flex flex-wrap items-stretch" style={{ gap: "64px" }}>
+          <SlideIn from="left" className="flex" style={{ flex: "1 1 0", minWidth: "min(588px, 100%)" }}>
+            <ImagePanel
+              bgUrl={block1.imageBg}
+              illustrationUrl={block1.illustration}
+              alt="Dreelio project management — task board and time tracking interface"
+            />
+          </SlideIn>
+          <SlideIn from="right" delay={0.1} className="flex" style={{ flex: "1 1 0", minWidth: 0 }}>
+            <TextColumn
+              eyebrow={block1.eyebrow}
+              heading={block1.heading}
+              body={block1.body}
+              pills={block1.pills}
+            />
+          </SlideIn>
         </div>
 
-        {/* Block 2: text LEFT, image RIGHT */}
-        <div
-          className="flex flex-wrap-reverse items-stretch"
-          style={{ gap: "64px" }}
-        >
-          <TextColumn
-            eyebrow={block2.eyebrow}
-            heading={block2.heading}
-            body={block2.body}
-            pills={block2.pills}
-          />
-          <ImagePanel
-            bgUrl={block2.imageBg}
-            illustrationUrl={block2.illustration}
-            alt="Dreelio financial management — invoice and earnings tracking interface"
-          />
+        {/* Block 2: text LEFT slides in from left, image RIGHT slides in from right */}
+        <div className="flex flex-wrap-reverse items-stretch" style={{ gap: "64px" }}>
+          <SlideIn from="left" className="flex" style={{ flex: "1 1 0", minWidth: 0 }}>
+            <TextColumn
+              eyebrow={block2.eyebrow}
+              heading={block2.heading}
+              body={block2.body}
+              pills={block2.pills}
+            />
+          </SlideIn>
+          <SlideIn from="right" delay={0.1} className="flex" style={{ flex: "1 1 0", minWidth: "min(588px, 100%)" }}>
+            <ImagePanel
+              bgUrl={block2.imageBg}
+              illustrationUrl={block2.illustration}
+              alt="Dreelio financial management — invoice and earnings tracking interface"
+            />
+          </SlideIn>
         </div>
       </div>
     </section>

@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import { LogosTicker } from "./LogosTicker";
+import { FadeUp, StaggerGroup, StaggerItem } from "./motion";
 
 type Billing = "annually" | "monthly";
 
@@ -272,7 +273,7 @@ export function Pricing() {
   return (
     <section className="w-full flex flex-col items-center px-6" style={{ gap: 60 }}>
       {/* Header */}
-      <div className="flex flex-col items-center text-center" style={{ gap: 12 }}>
+      <FadeUp className="flex flex-col items-center text-center" style={{ gap: 12 }}>
         <span
           className="text-[13px] font-semibold tracking-[0.12em] uppercase"
           style={{ color: "var(--neutral-10)" }}
@@ -289,36 +290,39 @@ export function Pricing() {
         >
           Simple plans for serious work
         </h2>
-      </div>
+      </FadeUp>
 
-      {/* Cards — max 1072px, bottom-aligned, gap=12 */}
-      <div
+      {/* Cards — staggered, bottom-aligned */}
+      <StaggerGroup
         className="w-full flex flex-wrap justify-center items-end"
         style={{ maxWidth: 1072, gap: 12 }}
       >
-        {/* Basic */}
-        <DefaultCard
-          label="Dreelio Basic"
-          name="Basic"
-          price="Free"
-          desc="For solo use with light needs."
-          features={BASIC_FEATURES}
-          cta="Try Freelio free"
-        />
+        <StaggerItem style={{ flex: "1 1 280px", maxWidth: 341 }}>
+          <DefaultCard
+            label="Dreelio Basic"
+            name="Basic"
+            price="Free"
+            desc="For solo use with light needs."
+            features={BASIC_FEATURES}
+            cta="Try Freelio free"
+          />
+        </StaggerItem>
 
-        {/* Premium — highlighted, taller due to toggle */}
-        <HighlightedCard billing={billing} onBillingChange={setBilling} />
+        <StaggerItem style={{ flex: "1 1 280px", maxWidth: 341 }}>
+          <HighlightedCard billing={billing} onBillingChange={setBilling} />
+        </StaggerItem>
 
-        {/* Enterprise */}
-        <DefaultCard
-          label="Dreelio Enterprise"
-          name="Enterprise"
-          price="Flexible"
-          desc="For team use with light needs."
-          features={ENTERPRISE_FEATURES}
-          cta="Contact sales"
-        />
-      </div>
+        <StaggerItem style={{ flex: "1 1 280px", maxWidth: 341 }}>
+          <DefaultCard
+            label="Dreelio Enterprise"
+            name="Enterprise"
+            price="Flexible"
+            desc="For team use with light needs."
+            features={ENTERPRISE_FEATURES}
+            cta="Contact sales"
+          />
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Repeated LogosTicker at bottom */}
       <div className="w-full">

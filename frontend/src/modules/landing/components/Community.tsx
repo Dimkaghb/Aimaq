@@ -1,3 +1,5 @@
+"use client";
+
 /* Framer source: nodeId NAN7SdLYe (Community)
    Container: maxWidth=952px, gap=56px
    CommunityCard Desktop: bg=rgba(255,255,255,0.699), radius=24px, padding=32px, gap=32px
@@ -5,6 +7,7 @@
    Platform name: Heading 5 (28px) | Description: Body Large (18px) | CTA: Tertiary button */
 
 import Link from "next/link";
+import { FadeUp, StaggerGroup, StaggerItem } from "./motion";
 
 const XIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-white">
@@ -45,19 +48,19 @@ export function Community() {
       {/* maxWidth=952px (matches Framer) */}
       <div className="flex flex-col w-full" style={{ maxWidth: 952, gap: 56 }}>
         {/* Header */}
-        <div className="flex flex-col items-center gap-5 text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
+        <FadeUp className="flex flex-col items-center gap-5 text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
           <span className="font-semibold tracking-widest uppercase" style={{ fontSize: 15, color: "var(--neutral-10)" }}>
             Community
           </span>
           <h2 className="font-semibold leading-[120%] tracking-[-0.03em]" style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--neutral-30)" }}>
             Stay in the loop
           </h2>
-        </div>
+        </FadeUp>
 
-        {/* Cards — horizontal, gap=24px */}
-        <div className="flex flex-wrap" style={{ gap: 24 }}>
+        {/* Cards — staggered */}
+        <StaggerGroup className="flex flex-wrap" style={{ gap: 24 }}>
           {cards.map((card) => (
-            <div
+            <StaggerItem
               key={card.platform}
               className="flex flex-col justify-between"
               style={{
@@ -119,9 +122,9 @@ export function Community() {
               >
                 {card.cta}
               </Link>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
     </section>
   );

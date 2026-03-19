@@ -1,3 +1,5 @@
+"use client";
+
 /* Framer source: nodeId kO4oh9IU1 (Benefits)
    Container: maxWidth=1072px, gap=56px
    Top 2 cards: horizontal, gap=24px | each: borderRadius=24px, padding=32px, gap=80px
@@ -5,6 +7,7 @@
    BenefitsCard: 56px icon circle (Beige 0 bg), H6 title, Body Normal desc */
 
 import Image from "next/image";
+import { FadeUp, StaggerGroup, StaggerItem } from "./motion";
 
 /* ── Integration icon squares ────────────────────────────────────── */
 type IntegrationItem = { name: string; color: string; letter: string };
@@ -150,134 +153,85 @@ const LayoutIcon = () => (
 /* ── Main component ──────────────────────────────────────────────── */
 export function Benefits() {
   return (
-    <section
-      className="w-full flex justify-center px-6 py-0"
-      id="benefits"
-    >
-      <div
-        className="flex flex-col w-full"
-        style={{ maxWidth: "1072px", gap: 56 }}
-      >
+    <section className="w-full flex justify-center px-6 py-0" id="benefits">
+      <div className="flex flex-col w-full" style={{ maxWidth: "1072px", gap: 56 }}>
+
         {/* Header */}
-        <div
-          className="flex flex-col items-center gap-5 w-full text-center"
-          style={{ maxWidth: 800, alignSelf: "center" }}
-        >
-          <span
-            className="font-semibold tracking-widest uppercase"
-            style={{ fontSize: 15, color: "var(--neutral-10)" }}
-          >
+        <FadeUp className="flex flex-col items-center gap-5 w-full text-center" style={{ maxWidth: 800, alignSelf: "center" }}>
+          <span className="font-semibold tracking-widest uppercase" style={{ fontSize: 15, color: "var(--neutral-10)" }}>
             features
           </span>
-          <h2
-            className="font-semibold leading-[120%] tracking-[-0.03em]"
-            style={{
-              fontSize: "clamp(32px, 4.5vw, 52px)",
-              color: "var(--neutral-30)",
-            }}
-          >
+          <h2 className="font-semibold leading-[120%] tracking-[-0.03em]"
+            style={{ fontSize: "clamp(32px, 4.5vw, 52px)", color: "var(--neutral-30)" }}>
             Built for freelancers, powered by simplicity
           </h2>
-        </div>
+        </FadeUp>
 
         {/* Cards */}
         <div className="flex flex-col" style={{ gap: 24 }}>
-          {/* Top row — 2 large cards */}
-          <div className="flex flex-wrap" style={{ gap: 24 }}>
+          {/* Top row — 2 large cards, staggered */}
+          <StaggerGroup className="flex flex-wrap" style={{ gap: 24 }}>
             {/* Card 1 — Customisation */}
-            <div
-              className="flex flex-col"
-              style={{
-                flex: "1 1 460px",
-                backgroundColor: "rgba(240, 234, 229, 1)",
-                borderRadius: 24,
-                padding: 32,
-                gap: 80,
-                overflow: "hidden",
-              }}
-            >
-              <h3
-                className="font-semibold leading-[140%] tracking-[-0.03em]"
-                style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}
-              >
+            <StaggerItem className="flex flex-col" style={{ flex: "1 1 460px", backgroundColor: "rgba(240, 234, 229, 1)", borderRadius: 24, padding: 32, gap: 80, overflow: "hidden" }}>
+              <h3 className="font-semibold leading-[140%] tracking-[-0.03em]"
+                style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}>
                 Smart, flexible, and built around your business workflow
               </h3>
-              {/* Illustration */}
-              <div
-                className="relative w-full"
-                style={{ height: 176, borderRadius: 0 }}
-              >
+              <div className="relative w-full" style={{ height: 176 }}>
                 <Image
                   src="https://framerusercontent.com/images/o5PFg7LTymdZ6P4tuEGy4oFUFzw.svg"
                   alt="Dreelio workflow customization illustration"
-                  fill
-                  className="object-contain object-left"
-                  sizes="(max-width: 768px) 100vw, 540px"
-                  unoptimized
+                  fill className="object-contain object-left"
+                  sizes="(max-width: 768px) 100vw, 540px" unoptimized
                 />
               </div>
-              <p
-                className="leading-[150%]"
-                style={{ fontSize: 18, color: "var(--neutral-20)" }}
-              >
+              <p className="leading-[150%]" style={{ fontSize: 18, color: "var(--neutral-20)" }}>
                 Personalize every detail. From branding and interface layout to
-                colors and menus, so Dreelio feels like an extension of your
-                brand.
+                colors and menus, so Dreelio feels like an extension of your brand.
               </p>
-            </div>
+            </StaggerItem>
 
             {/* Card 2 — Integrations */}
-            <div
-              className="flex flex-col"
-              style={{
-                flex: "1 1 460px",
-                backgroundColor: "rgba(241, 235, 229, 1)",
-                borderRadius: 24,
-                padding: 32,
-                gap: 80,
-                overflow: "hidden",
-              }}
-            >
-              <h3
-                className="font-semibold leading-[140%] tracking-[-0.03em]"
-                style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}
-              >
+            <StaggerItem className="flex flex-col" style={{ flex: "1 1 460px", backgroundColor: "rgba(241, 235, 229, 1)", borderRadius: 24, padding: 32, gap: 80, overflow: "hidden" }}>
+              <h3 className="font-semibold leading-[140%] tracking-[-0.03em]"
+                style={{ fontSize: "clamp(20px, 2vw, 28px)", color: "var(--neutral-30)" }}>
                 Integrates seamlessly with the tools you already use
               </h3>
-              {/* Two ticker rows */}
               <div className="flex flex-col" style={{ gap: 16, height: 176 }}>
                 <IntegrationsRow items={integrationRow1} direction="left" />
                 <IntegrationsRow items={integrationRow2} direction="right" />
               </div>
-              <p
-                className="leading-[150%]"
-                style={{ fontSize: 18, color: "var(--neutral-20)" }}
-              >
+              <p className="leading-[150%]" style={{ fontSize: 18, color: "var(--neutral-20)" }}>
                 Seamless integrations. Plug Dreelio into the tools you love.
-                Set up automations, sync your data, and make your systems work
-                smarter together.
+                Set up automations, sync your data, and make your systems work smarter together.
               </p>
-            </div>
-          </div>
+            </StaggerItem>
+          </StaggerGroup>
 
-          {/* Bottom row — 3 BenefitsCards */}
-          <div className="flex flex-wrap" style={{ gap: 24 }}>
-            <BenefitsCard
-              icon={<HandshakeIcon />}
-              title="Collaborate in realtime"
-              description="Keep every conversation in sync — use comments, messages, and project chats to stay on the same page."
-            />
-            <BenefitsCard
-              icon={<GlobeIcon />}
-              title="Speaks your language"
-              description="Set your language, currency, time, and date preferences for a seamless experience that feels truly local."
-            />
-            <BenefitsCard
-              icon={<LayoutIcon />}
-              title="View things your way"
-              description="Easily toggle between various views, including Kanban, cards, list, table, timeline, and calendar."
-            />
-          </div>
+          {/* Bottom row — 3 BenefitsCards, staggered */}
+          <StaggerGroup className="flex flex-wrap" style={{ gap: 24 }}>
+            <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
+              <BenefitsCard
+                icon={<HandshakeIcon />}
+                title="Collaborate in realtime"
+                description="Keep every conversation in sync — use comments, messages, and project chats to stay on the same page."
+              />
+            </StaggerItem>
+            <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
+              <BenefitsCard
+                icon={<GlobeIcon />}
+                title="Speaks your language"
+                description="Set your language, currency, time, and date preferences for a seamless experience that feels truly local."
+              />
+            </StaggerItem>
+            <StaggerItem style={{ flex: "1 1 0", minWidth: 240 }}>
+              <BenefitsCard
+                icon={<LayoutIcon />}
+                title="View things your way"
+                description="Easily toggle between various views, including Kanban, cards, list, table, timeline, and calendar."
+              />
+            </StaggerItem>
+          </StaggerGroup>
         </div>
       </div>
     </section>

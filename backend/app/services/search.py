@@ -78,11 +78,23 @@ async def run_search(
         top_n=top_n,
     )
 
+    # Generate AI explanation for top results
+    explanation = ""
+    if scored:
+        try:
+            from app.agents.nodes.explainer import generate_explanation
+
+            explanation = await generate_explanation(scored, business_type)
+        except Exception as e:
+            log.error("explanation_generation_failed", error=str(e))
+            explanation = ""
+
     log.info(
         "search_complete",
         business_type=business_type,
         evaluated=len(listings),
         returned=len(scored),
+        has_explanation=bool(explanation),
     )
 
     return {
@@ -92,4 +104,5 @@ async def run_search(
         "competitor_tolerance": competitor_tolerance,
         "total_evaluated": len(listings),
         "results": scored,
+        "explanation": explanation,
     }

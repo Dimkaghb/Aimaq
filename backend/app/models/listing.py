@@ -106,6 +106,7 @@ class SearchResponse(BaseModel):
     competitor_tolerance: int
     total_evaluated: int
     results: list[ScoredListingResponse]
+    explanation: str = ""
 
 
 class ListingsResponse(BaseModel):

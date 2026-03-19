@@ -237,6 +237,63 @@ def create_app() -> FastAPI:
             "top_results": scored,
         }
 
+    @app.post(
+        "/api/v1/dev/explain",
+        status_code=200,
+        tags=["dev"],
+        summary="Test AI explainer on scored listings",
+    )
+    async def dev_explain(
+        business_type: str = "fastfood",
+        budget_tenge: int | None = None,
+        top_n: int = 3,
+    ) -> dict:
+        """Score listings then generate a Russian AI explanation."""
+        from app.agents.nodes.explainer import generate_explanation
+        from app.services.scoring import score_listings
+
+        from app.db.client import get_db
+
+        db = await get_db()
+        result = (
+            await db.table("enriched_listings")
+            .select("*, listings(*)")
+            .execute()
+        )
+        rows = result.data or []
+        if not rows:
+            return {"message": "No enriched listings. Run /dev/enrich first."}
+
+        flat: list[dict] = []
+        for row in rows:
+            listing = row.get("listings", {}) or {}
+            flat.append({
+                "id": listing.get("id") or row.get("listing_id"),
+                "title": listing.get("title", ""),
+                "address": listing.get("address", ""),
+                "district": listing.get("district"),
+                "price_tenge": listing.get("price_tenge"),
+                "area_sqm": listing.get("area_sqm"),
+                "url": listing.get("url", ""),
+                "lat": listing.get("lat"),
+                "lng": listing.get("lng"),
+                "footfall_raw": row.get("footfall_raw", 50),
+                "competitor_count": row.get("competitor_count", 0),
+                "bus_stops_nearby": row.get("bus_stops_nearby", 0),
+                "metro_distance_m": row.get("metro_distance_m"),
+                "nearest_metro_name": row.get("nearest_metro_name"),
+            })
+
+        scored = score_listings(flat, business_type=business_type, budget_tenge=budget_tenge, top_n=top_n)
+
+        explanation = await generate_explanation(scored, business_type)
+
+        return {
+            "business_type": business_type,
+            "top_listings_count": len(scored),
+            "explanation": explanation,
+        }
+
     return app
 
 

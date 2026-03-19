@@ -7,10 +7,6 @@ from app.agents.state import PipelineState
 
 log = structlog.get_logger()
 
-# Max concurrent 2GIS API requests
-_SEMAPHORE = asyncio.Semaphore(10)
-
-
 async def competitor_node(state: PipelineState) -> dict:
     """Count competitors near each listing via 2GIS API.
 
@@ -30,6 +26,8 @@ async def competitor_node(state: PipelineState) -> dict:
 
     from app.integrations.gis2 import TwoGISClient
 
+    sem = asyncio.Semaphore(10)
+
     async def _fetch_one(
         client: TwoGISClient, listing: dict, business_type: str
     ) -> dict:
@@ -40,7 +38,7 @@ async def competitor_node(state: PipelineState) -> dict:
         if lat is None or lng is None:
             return {"listing_id": listing_id, "competitor_count": 0}
 
-        async with _SEMAPHORE:
+        async with sem:
             try:
                 if query_override:
                     # Use planner's custom query override

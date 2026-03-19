@@ -8,9 +8,6 @@ from app.services.scoring import DISTRICT_FOOTFALL
 
 log = structlog.get_logger()
 
-# Max concurrent 2GIS requests for POI density
-_SEMAPHORE = asyncio.Semaphore(5)
-
 # Default anchor POI queries when no planner hints provided
 _DEFAULT_ANCHOR_POIS = ["парк", "торговый центр", "университет", "школа"]
 
@@ -23,6 +20,7 @@ async def _count_anchor_pois(
     lat: float,
     lng: float,
     anchor_pois: list[str],
+    sem: asyncio.Semaphore,
 ) -> int:
     """Count anchor POIs near a location using 2GIS search.
 
@@ -32,7 +30,7 @@ async def _count_anchor_pois(
     seen_ids: set[str] = set()
 
     for poi_query in anchor_pois[:4]:  # cap at 4 queries per listing
-        async with _SEMAPHORE:
+        async with sem:
             try:
                 items = await client.search_nearby(lat, lng, poi_query, _ANCHOR_RADIUS)
                 for item in items:
@@ -86,6 +84,8 @@ async def footfall_node(state: PipelineState) -> dict:
         try:
             from app.integrations.gis2 import TwoGISClient
 
+            sem = asyncio.Semaphore(5)
+
             async with TwoGISClient() as client:
                 async def _compute_one(listing: dict) -> dict:
                     listing_id = listing.get("id")
@@ -96,7 +96,7 @@ async def footfall_node(state: PipelineState) -> dict:
                     district_baseline = DISTRICT_FOOTFALL.get(district, 50) if district else 50
 
                     try:
-                        poi_count = await _count_anchor_pois(client, lat, lng, anchor_pois)
+                        poi_count = await _count_anchor_pois(client, lat, lng, anchor_pois, sem)
                         # Normalize POI count: 0 POIs → 0, 5+ POIs → 100
                         poi_score = min(poi_count / 5.0, 1.0) * 100
                         # Blend: 40% district baseline + 60% POI density

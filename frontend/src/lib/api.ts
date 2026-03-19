@@ -4,18 +4,17 @@ import type {
   PollResponse,
   ContactResponse,
 } from "@/types";
+import { getAccessToken } from "@/lib/supabase/token";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-function getAuthHeaders(): HeadersInit {
-  if (typeof window === "undefined") return {};
-  // Read JWT from window.__locationiq_token if set at runtime by auth provider
-  const token = (window as Window & { __locationiq_token?: string }).__locationiq_token;
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const token = await getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export async function postSearch(body: SearchRequest): Promise<SearchResponse> {
-  const headers = getAuthHeaders();
+  const headers = await getAuthHeaders();
   const res = await fetch(`${BASE_URL}/api/v1/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
@@ -29,7 +28,7 @@ export async function postSearch(body: SearchRequest): Promise<SearchResponse> {
 }
 
 export async function pollSearch(sessionId: string): Promise<PollResponse> {
-  const headers = getAuthHeaders();
+  const headers = await getAuthHeaders();
   const res = await fetch(`${BASE_URL}/api/v1/search/${sessionId}`, {
     headers,
   });
@@ -43,7 +42,7 @@ export async function postContact(
   sessionId: string,
   listingId: string
 ): Promise<ContactResponse> {
-  const headers = getAuthHeaders();
+  const headers = await getAuthHeaders();
   const res = await fetch(
     `${BASE_URL}/api/v1/search/${sessionId}/contact`,
     {

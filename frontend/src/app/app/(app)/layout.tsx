@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { AuthGuard } from "@/lib/supabase/auth-guard";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -17,6 +18,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <AuthGuard>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </AuthGuard>
   );
 }

@@ -5,19 +5,18 @@ import type {
   TeamResponse,
   UserProfile,
 } from "@/types/dashboard";
+import { getAccessToken } from "@/lib/supabase/token";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-function getAuthHeaders(): HeadersInit {
-  if (typeof window === "undefined") return {};
-  const token = (window as Window & { __locationiq_token?: string })
-    .__locationiq_token;
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const token = await getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function fetchJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
-    headers: getAuthHeaders(),
+    headers: await getAuthHeaders(),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");

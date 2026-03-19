@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/supabase/auth-context";
 
 function AimaqLogo() {
   return (
@@ -140,6 +142,8 @@ interface SidebarProps {
 export function Sidebar({ userName }: SidebarProps) {
   const [activePath] = useState("/dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const { signOut } = useAuth();
+  const router = useRouter();
 
   const width = collapsed ? 64 : 200;
 
@@ -259,6 +263,31 @@ export function Sidebar({ userName }: SidebarProps) {
               collapsed={collapsed}
             />
           ))}
+          <button
+            type="button"
+            onClick={async () => {
+              await signOut();
+              router.push("/auth");
+            }}
+            className="flex items-center gap-3 rounded-xl transition-colors hover:bg-red-50"
+            style={{
+              padding: "10px 12px",
+              fontSize: 15,
+              color: "#dc2626",
+              backgroundColor: "transparent",
+              border: "none",
+              cursor: "pointer",
+              width: "100%",
+              textAlign: "left",
+            }}
+          >
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            {!collapsed && "Выйти"}
+          </button>
         </div>
       </nav>
     </aside>

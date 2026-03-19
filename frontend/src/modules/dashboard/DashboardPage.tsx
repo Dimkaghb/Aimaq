@@ -12,22 +12,32 @@ import {
   useEarnings,
   useProjects,
   useTeam,
-  useUserProfile,
 } from "@/hooks/useDashboardData";
+import { useAuth } from "@/lib/supabase/auth-context";
+import type { UserProfile } from "@/types/dashboard";
 
 export function DashboardPage() {
-  const userQuery = useUserProfile();
+  const { user } = useAuth();
   const statsQuery = useDashboardStats();
   const earningsQuery = useEarnings();
   const projectsQuery = useProjects("ongoing");
   const teamQuery = useTeam();
 
+  const userProfile: UserProfile | undefined = user
+    ? {
+        id: user.id,
+        name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "",
+        email: user.email ?? "",
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+      }
+    : undefined;
+
   return (
     <div className="flex" style={{ height: "100dvh", overflow: "hidden" }}>
-      <Sidebar userName={userQuery.data?.name} />
+      <Sidebar userName={userProfile?.name} />
 
       <main className="flex-1 flex flex-col overflow-y-auto" style={{ minWidth: 0 }}>
-        <TopBar user={userQuery.data} isLoading={userQuery.isLoading} />
+        <TopBar user={userProfile} isLoading={!user} />
 
         <div className="flex flex-col" style={{ padding: "0 0 28px", gap: 18 }}>
           <StatsRow stats={statsQuery.data?.stats} isLoading={statsQuery.isLoading} />

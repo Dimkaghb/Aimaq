@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { AuthGuard } from "@/lib/supabase/auth-guard";
 
 export default function DashboardLayout({
   children,
@@ -21,6 +22,8 @@ export default function DashboardLayout({
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <AuthGuard>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </AuthGuard>
   );
 }

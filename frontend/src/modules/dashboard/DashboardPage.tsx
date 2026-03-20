@@ -9,9 +9,9 @@ import { OngoingProjects } from "./components/OngoingProjects";
 import { MyTeam } from "./components/MyTeam";
 import {
   useDashboardStats,
-  useEarnings,
-  useProjects,
-  useTeam,
+  useActivity,
+  usePopularListings,
+  useRecentListings,
 } from "@/hooks/useDashboardData";
 import { useAuth } from "@/lib/supabase/auth-context";
 import type { UserProfile } from "@/types/dashboard";
@@ -19,9 +19,9 @@ import type { UserProfile } from "@/types/dashboard";
 export function DashboardPage() {
   const { user } = useAuth();
   const statsQuery = useDashboardStats();
-  const earningsQuery = useEarnings();
-  const projectsQuery = useProjects("ongoing");
-  const teamQuery = useTeam();
+  const activityQuery = useActivity();
+  const popularQuery = usePopularListings();
+  const recentQuery = useRecentListings();
 
   const userProfile: UserProfile | undefined = user
     ? {
@@ -43,13 +43,13 @@ export function DashboardPage() {
           <StatsRow stats={statsQuery.data?.stats} isLoading={statsQuery.isLoading} />
 
           <div className="flex" style={{ padding: "0 28px", gap: 14 }}>
-            <EarningsChart months={earningsQuery.data?.months} isLoading={earningsQuery.isLoading} />
+            <EarningsChart months={activityQuery.data?.months} isLoading={activityQuery.isLoading} />
             <QuickActions />
           </div>
 
           <div className="flex" style={{ padding: "0 28px", gap: 14 }}>
-            <OngoingProjects projects={projectsQuery.data?.projects} isLoading={projectsQuery.isLoading} />
-            <MyTeam members={teamQuery.data?.members} isLoading={teamQuery.isLoading} />
+            <OngoingProjects projects={popularQuery.data?.projects} isLoading={popularQuery.isLoading} />
+            <MyTeam members={recentQuery.data?.members} isLoading={recentQuery.isLoading} />
           </div>
         </div>
       </main>

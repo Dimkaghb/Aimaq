@@ -3,7 +3,6 @@ import type {
   EarningsResponse,
   ProjectsResponse,
   TeamResponse,
-  UserProfile,
 } from "@/types/dashboard";
 import { getAccessToken } from "@/lib/supabase/token";
 
@@ -29,22 +28,14 @@ export function fetchDashboardStats(): Promise<DashboardStatsResponse> {
   return fetchJSON("/api/v1/dashboard/stats");
 }
 
-export function fetchEarnings(
-  period: "month" | "week" | "year" = "month"
-): Promise<EarningsResponse> {
-  return fetchJSON(`/api/v1/dashboard/earnings?period=${period}`);
+export function fetchActivity(): Promise<EarningsResponse> {
+  return fetchJSON("/api/v1/dashboard/activity");
 }
 
-export function fetchProjects(
-  status: "ongoing" | "completed" | "all" = "ongoing"
-): Promise<ProjectsResponse> {
-  return fetchJSON(`/api/v1/dashboard/projects?status=${status}`);
+export function fetchPopularListings(): Promise<ProjectsResponse> {
+  return fetchJSON("/api/v1/dashboard/popular");
 }
 
-export function fetchTeam(): Promise<TeamResponse> {
-  return fetchJSON("/api/v1/dashboard/team");
-}
-
-export function fetchUserProfile(): Promise<UserProfile> {
-  return fetchJSON("/api/v1/user/me");
+export function fetchRecentListings(): Promise<TeamResponse> {
+  return fetchJSON("/api/v1/dashboard/recent");
 }

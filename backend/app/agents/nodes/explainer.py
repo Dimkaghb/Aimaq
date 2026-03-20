@@ -2,6 +2,7 @@ import time
 
 import structlog
 
+from app.db.queries import update_pipeline_step
 from app.services.llm import call_gemini
 
 log = structlog.get_logger()
@@ -108,6 +109,10 @@ async def explainer_node(state: dict) -> dict:
 
     Follows the node contract: async def, returns only updated keys, never raises.
     """
+    try:
+        await update_pipeline_step(state["search_id"], "explaining")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
 

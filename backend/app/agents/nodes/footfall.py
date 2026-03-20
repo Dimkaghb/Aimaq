@@ -4,6 +4,7 @@ import time
 import structlog
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 from app.services.scoring import DISTRICT_FOOTFALL
 
 log = structlog.get_logger()
@@ -54,6 +55,10 @@ async def footfall_node(state: PipelineState) -> dict:
 
     Returns footfall_results: [{listing_id, footfall_raw}, ...]
     """
+    try:
+        await update_pipeline_step(state["search_id"], "enriching")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
     results: list[dict] = []

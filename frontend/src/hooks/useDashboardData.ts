@@ -3,10 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchDashboardStats,
-  fetchEarnings,
-  fetchProjects,
-  fetchTeam,
-  fetchUserProfile,
+  fetchActivity,
+  fetchPopularListings,
+  fetchRecentListings,
 } from "@/lib/dashboard-api";
 
 export function useDashboardStats() {
@@ -18,40 +17,29 @@ export function useDashboardStats() {
   });
 }
 
-export function useEarnings(period: "month" | "week" | "year" = "month") {
+export function useActivity() {
   return useQuery({
-    queryKey: ["dashboard-earnings", period],
-    queryFn: () => fetchEarnings(period),
+    queryKey: ["dashboard-activity"],
+    queryFn: fetchActivity,
     staleTime: 60_000,
     retry: 2,
   });
 }
 
-export function useProjects(
-  status: "ongoing" | "completed" | "all" = "ongoing"
-) {
+export function usePopularListings() {
   return useQuery({
-    queryKey: ["dashboard-projects", status],
-    queryFn: () => fetchProjects(status),
+    queryKey: ["dashboard-popular"],
+    queryFn: fetchPopularListings,
     staleTime: 30_000,
     retry: 2,
   });
 }
 
-export function useTeam() {
+export function useRecentListings() {
   return useQuery({
-    queryKey: ["dashboard-team"],
-    queryFn: fetchTeam,
+    queryKey: ["dashboard-recent"],
+    queryFn: fetchRecentListings,
     staleTime: 30_000,
-    retry: 2,
-  });
-}
-
-export function useUserProfile() {
-  return useQuery({
-    queryKey: ["user-profile"],
-    queryFn: fetchUserProfile,
-    staleTime: 120_000,
     retry: 2,
   });
 }

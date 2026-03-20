@@ -78,3 +78,31 @@ export interface ContactResponse {
   draft_ru: string;
   draft_en: string;
 }
+
+export interface SaveBusinessResponse {
+  id: string;
+  already_saved: boolean;
+  listings_count?: number;
+}
+
+export interface SavedBusiness {
+  id: string;
+  user_id: string;
+  business_type: BusinessType;
+  business_name: string | null;
+  district: string | null;
+  budget_tenge: number | null;
+  session_id: string;
+  created_at: string;
+  listings_count: number;
+}
+
+export interface SavedBusinessesResponse {
+  businesses: SavedBusiness[];
+  total: number;
+}
+
+export interface SavedBusinessDetailResponse {
+  business: SavedBusiness;
+  listings: ScoredListing[];
+}

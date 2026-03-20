@@ -14,32 +14,40 @@ function LoadingScreen({ onCancel }: { onCancel: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 px-6 py-16">
       <div
-        className="w-full rounded-2xl flex flex-col"
+        className="w-full flex flex-col"
         style={{
-          maxWidth: 480,
+          maxWidth: 520,
+          borderRadius: 24,
           backgroundColor: "rgba(255,255,255,0.72)",
           backdropFilter: "blur(8px)",
-          border: "1px solid var(--stroke)",
           overflow: "hidden",
         }}
       >
         <PipelineProgress />
 
         <div
-          className="px-5 pb-5"
-          style={{ borderTop: "1px solid var(--stroke)", paddingTop: 16 }}
+          className="px-5 pb-5 flex justify-center"
+          style={{ paddingTop: 4 }}
         >
           <button
             type="button"
             onClick={onCancel}
-            className="w-full rounded-xl font-medium transition-colors"
+            className="rounded-full font-medium transition-all"
             style={{
-              padding: "10px 16px",
-              fontSize: 14,
-              backgroundColor: "rgba(220,38,38,0.06)",
-              color: "#dc2626",
-              border: "1.5px solid rgba(220,38,38,0.2)",
+              padding: "8px 24px",
+              fontSize: 13,
+              backgroundColor: "transparent",
+              color: "var(--neutral-10)",
+              border: "none",
               cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)";
+              e.currentTarget.style.color = "var(--accent-orange)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "var(--neutral-10)";
             }}
           >
             Отменить
@@ -98,6 +106,10 @@ export default function AppPage() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
+        }
+        @keyframes pulse-dot {
+          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
         }
       `}</style>
 

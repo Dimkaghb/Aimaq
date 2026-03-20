@@ -3,6 +3,7 @@ import time
 import structlog
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 from app.services.scoring import score_listings
 
 log = structlog.get_logger()
@@ -49,6 +50,10 @@ async def scoring_node(state: PipelineState) -> dict:
     Returns ALL scored listings (not just top 5).
     Filters out listings below the quality threshold.
     """
+    try:
+        await update_pipeline_step(state["search_id"], "scoring")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
 

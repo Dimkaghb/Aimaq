@@ -5,6 +5,7 @@ import time
 import structlog
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 
 log = structlog.get_logger()
 
@@ -222,6 +223,10 @@ async def searcher_node(state: PipelineState) -> dict:
 
     Returns all matching listings that pass filters.
     """
+    try:
+        await update_pipeline_step(state["search_id"], "fetching")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
     business_type = state["business_type"]
@@ -308,6 +313,13 @@ async def searcher_node(state: PipelineState) -> dict:
                     continue
 
             if upsert_rows:
+                # Deduplicate within the batch — keep last per (external_id, source)
+                seen_keys: dict[tuple[str, str], dict] = {}
+                for row in upsert_rows:
+                    key = (row.get("external_id", ""), row.get("source", ""))
+                    seen_keys[key] = row
+                upsert_rows = list(seen_keys.values())
+
                 await db.table("listings").upsert(
                     upsert_rows, on_conflict="external_id,source"
                 ).execute()

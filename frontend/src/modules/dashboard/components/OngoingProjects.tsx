@@ -15,9 +15,9 @@ const PRIORITY_STYLES: Record<ProjectPriority, { bg: string; color: string; dot:
 };
 
 const PRIORITY_LABELS: Record<ProjectPriority, string> = {
-  high: "Высокий",
+  low: "Топ",
   medium: "Средний",
-  low: "Низкий",
+  high: "Низкий",
 };
 
 function AvatarGroup({ count }: { count: number }) {
@@ -136,7 +136,7 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
               borderBottom: "1px solid var(--stroke)",
             }}
           >
-            {["Название", "Клиент", "Приоритет", "Дедлайн", "Назначенная команда"].map((h) => (
+            {["Название", "Район", "Рейтинг", "Цена", "Оценка"].map((h) => (
               <span
                 key={h}
                 className="text-[12px] font-medium"
@@ -243,8 +243,20 @@ export function OngoingProjects({ projects, isLoading }: OngoingProjectsProps) {
                   {project.deadline}
                 </span>
 
-                {/* Team */}
-                <AvatarGroup count={project.team_member_count} />
+                {/* Score */}
+                <span
+                  className="font-bold"
+                  style={{
+                    fontSize: 14,
+                    color: project.team_member_count >= 70
+                      ? "var(--accent-green)"
+                      : project.team_member_count >= 45
+                        ? "var(--accent-yellow)"
+                        : "var(--accent-orange)",
+                  }}
+                >
+                  {project.team_member_count}
+                </span>
               </div>
             );
           })}

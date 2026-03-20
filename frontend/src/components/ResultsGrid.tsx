@@ -7,7 +7,7 @@ import { ScoreRing } from "./ScoreRing";
 import { ScoreBreakdown } from "./ScoreBreakdown";
 import { ContactModal } from "./ContactModal";
 import { formatPrice, formatArea, getScoreBadges } from "@/lib/score-utils";
-import { postContact } from "@/lib/api";
+import { postContact, saveBusiness } from "@/lib/api";
 import type { ScoredListing } from "@/types";
 
 const AlmatyMap = dynamic(
@@ -191,7 +191,7 @@ function SidebarCard({
             <ScoreBreakdown breakdown={listing.score_breakdown} />
 
             {contactError && (
-              <p className="text-[12px]" style={{ color: "#dc2626" }}>{contactError}</p>
+              <p className="text-[12px]" style={{ color: "var(--accent-orange)" }}>{contactError}</p>
             )}
 
             <div className="flex flex-col" style={{ gap: 6 }}>
@@ -199,7 +199,7 @@ function SidebarCard({
                 type="button"
                 onClick={handleContact}
                 disabled={contactLoading}
-                className="w-full rounded-xl font-semibold transition-opacity"
+                className="w-full rounded-full font-semibold transition-opacity hover:opacity-85"
                 style={{
                   padding: "12px 16px",
                   fontSize: 14,
@@ -219,11 +219,11 @@ function SidebarCard({
                     e.stopPropagation();
                     onShowOnMap();
                   }}
-                  className="flex-1 rounded-lg font-medium py-2.5 text-[13px]"
+                  className="flex-1 rounded-full font-medium py-2.5 text-[13px] transition-colors hover:bg-black/5"
                   style={{
                     backgroundColor: "transparent",
                     color: "var(--neutral-20)",
-                    border: "1px solid var(--stroke)",
+                    border: "1.5px solid var(--stroke)",
                     cursor: "pointer",
                   }}
                 >
@@ -234,11 +234,11 @@ function SidebarCard({
                     href={listing.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 rounded-lg font-medium py-2.5 text-[13px] text-center"
+                    className="flex-1 rounded-full font-medium py-2.5 text-[13px] text-center transition-colors hover:bg-black/5"
                     style={{
                       backgroundColor: "var(--beige-10)",
                       color: "var(--neutral-20)",
-                      border: "1px solid var(--stroke)",
+                      border: "1.5px solid var(--stroke)",
                       textDecoration: "none",
                     }}
                     onClick={(e) => e.stopPropagation()}
@@ -266,11 +266,31 @@ export function ResultsGrid({ onStartOver, explanation }: ResultsGridProps) {
   const appState = useLocationIQStore((s) => s.appState);
   const listings = useLocationIQStore((s) => s.listings);
   const businessType = useLocationIQStore((s) => s.businessType);
+  const sessionId = useLocationIQStore((s) => s.sessionId);
   const activeListingId = useLocationIQStore((s) => s.activeListingId);
   const expandedListingId = useLocationIQStore((s) => s.expandedListingId);
   const setActiveListingId = useLocationIQStore((s) => s.setActiveListingId);
   const setExpandedListingId = useLocationIQStore((s) => s.setExpandedListingId);
   const setAppState = useLocationIQStore((s) => s.setAppState);
+
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  async function handleSave() {
+    if (!sessionId || saving || saved) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await saveBusiness(sessionId);
+      setSaved(true);
+      if (res.already_saved) setSaved(true);
+    } catch {
+      setSaveError("Не удалось сохранить");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   function handleExpand(id: string) {
     setExpandedListingId(id);
@@ -337,12 +357,55 @@ export function ResultsGrid({ onStartOver, explanation }: ResultsGridProps) {
             borderBottom: "1px solid var(--stroke)",
           }}
         >
-          <h2
-            className="font-semibold tracking-tight"
-            style={{ fontSize: 15, color: "var(--neutral-30)" }}
-          >
-            Топ {listings.length} для {bizLabel}
-          </h2>
+          <div className="flex items-center justify-between" style={{ gap: 10 }}>
+            <h2
+              className="font-semibold tracking-tight"
+              style={{ fontSize: 15, color: "var(--neutral-30)" }}
+            >
+              Топ {listings.length} для {bizLabel}
+            </h2>
+            {listings.length > 0 && (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || saved}
+                className="flex items-center gap-1.5 rounded-full font-semibold transition-opacity hover:opacity-85"
+                style={{
+                  padding: "7px 14px",
+                  fontSize: 13,
+                  backgroundColor: saved ? "rgba(14,161,88,0.08)" : "var(--neutral-30)",
+                  color: saved ? "var(--accent-green)" : "#fff",
+                  border: "none",
+                  cursor: saving || saved ? "default" : "pointer",
+                  opacity: saving ? 0.6 : 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {saved ? (
+                  <>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Сохранено
+                  </>
+                ) : saving ? (
+                  "Сохраняем..."
+                ) : (
+                  <>
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                      <polyline points="17 21 17 13 7 13 7 21" />
+                      <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    Сохранить
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          {saveError && (
+            <p className="text-[12px] mt-1" style={{ color: "var(--accent-orange)" }}>{saveError}</p>
+          )}
         </div>
 
         {/* AI explanation — only when present */}
@@ -371,7 +434,7 @@ export function ResultsGrid({ onStartOver, explanation }: ResultsGridProps) {
               <button
                 type="button"
                 onClick={onStartOver}
-                className="rounded-full font-semibold"
+                className="rounded-full font-semibold transition-opacity hover:opacity-85"
                 style={{
                   padding: "10px 20px", fontSize: 14,
                   backgroundColor: "var(--neutral-30)", color: "#fff",

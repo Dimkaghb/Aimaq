@@ -4,6 +4,7 @@ import time
 import structlog
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 
 log = structlog.get_logger()
 
@@ -14,6 +15,10 @@ async def competitor_node(state: PipelineState) -> dict:
     Uses planner's enrichment_hints for query_override and radius if available.
     Returns competitor_results: [{listing_id, competitor_count}, ...]
     """
+    try:
+        await update_pipeline_step(state["search_id"], "enriching")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
 

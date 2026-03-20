@@ -4,6 +4,7 @@ import structlog
 from google.genai import types
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 from app.services.llm import call_gemini_with_tools
 
 log = structlog.get_logger()
@@ -164,6 +165,10 @@ async def validator_node(state: PipelineState) -> dict:
     applies score adjustments, and re-ranks. Returns all validated listings
     as top_listings (not limited to 5).
     """
+    try:
+        await update_pipeline_step(state["search_id"], "validating")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
 

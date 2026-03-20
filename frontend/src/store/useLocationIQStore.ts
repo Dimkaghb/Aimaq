@@ -7,6 +7,7 @@ import type {
   ScoredListing,
   ContactResponse,
 } from "@/types";
+import type { HeatmapLayer, HeatmapPoint } from "@/lib/api";
 
 interface LocationIQStore {
   appState: AppState;
@@ -45,6 +46,14 @@ interface LocationIQStore {
   // Last searched params (to detect stale results)
   lastSearchedParams: string | null;
   setLastSearchedParams: (p: string | null) => void;
+
+  // Heatmap layer
+  activeHeatmap: HeatmapLayer | null;
+  setActiveHeatmap: (layer: HeatmapLayer | null) => void;
+  heatmapPoints: HeatmapPoint[];
+  setHeatmapPoints: (points: HeatmapPoint[]) => void;
+  heatmapLoading: boolean;
+  setHeatmapLoading: (loading: boolean) => void;
 
   resetSearch: () => void;
 }
@@ -86,6 +95,13 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
   lastSearchedParams: null,
   setLastSearchedParams: (p) => set({ lastSearchedParams: p }),
 
+  activeHeatmap: null,
+  setActiveHeatmap: (layer) => set({ activeHeatmap: layer }),
+  heatmapPoints: [],
+  setHeatmapPoints: (points) => set({ heatmapPoints: points }),
+  heatmapLoading: false,
+  setHeatmapLoading: (loading) => set({ heatmapLoading: loading }),
+
   resetSearch: () =>
     set({
       sessionId: null,
@@ -97,5 +113,7 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
       pipelineStatus: null,
       appState: "idle",
       lastSearchedParams: null,
+      activeHeatmap: null,
+      heatmapPoints: [],
     }),
 }));

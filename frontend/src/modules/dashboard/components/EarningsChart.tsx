@@ -90,11 +90,11 @@ export function EarningsChart({ months, isLoading }: EarningsChartProps) {
       <div className="flex items-center" style={{ gap: 16 }}>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--accent-blue)" }} />
-          Активные
+          Завершённые
         </span>
         <span className="flex items-center gap-1.5" style={{ fontSize: 13, color: "var(--neutral-20)" }}>
           <span className="inline-block rounded-full" style={{ width: 8, height: 8, backgroundColor: "var(--beige-40)" }} />
-          Неактивные
+          Незавершённые
         </span>
       </div>
 

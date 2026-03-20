@@ -68,7 +68,12 @@ async def call_gemini_with_tools(
         )
 
         # Extract function call from response
-        for part in response.candidates[0].content.parts:
+        candidate = response.candidates[0] if response.candidates else None
+        if not candidate or not candidate.content or not candidate.content.parts:
+            log.warning("gemini_empty_response", model=model)
+            return {"function_name": "text_fallback", "arguments": {}}
+
+        for part in candidate.content.parts:
             if part.function_call:
                 # Convert proto to dict
                 args = dict(part.function_call.args)

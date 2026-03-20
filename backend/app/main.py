@@ -4,6 +4,9 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.routers.businesses import router as businesses_router
+from app.api.v1.routers.dashboard import router as dashboard_router
+from app.api.v1.routers.heatmap import router as heatmap_router
 from app.api.v1.routers.listings import router as listings_router
 from app.api.v1.routers.search import router as search_router
 from app.config import settings
@@ -38,6 +41,9 @@ def create_app() -> FastAPI:
     # --- Production routers ---
     app.include_router(search_router, prefix="/api/v1", tags=["search"])
     app.include_router(listings_router, prefix="/api/v1", tags=["listings"])
+    app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
+    app.include_router(businesses_router, prefix="/api/v1", tags=["businesses"])
+    app.include_router(heatmap_router, prefix="/api/v1", tags=["heatmap"])
 
     @app.get("/api/v1/health", status_code=200, tags=["system"])
     async def health() -> dict:

@@ -1,6 +1,7 @@
 import structlog
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.api.deps import get_optional_user_id
 from app.models.listing import (
     ScoredListingResponse,
     SearchRequest,
@@ -20,7 +21,10 @@ router = APIRouter()
     status_code=202,
     summary="Start an async search for optimal commercial locations",
 )
-async def create_search(request: SearchRequest) -> SearchSessionCreated:
+async def create_search(
+    request: SearchRequest,
+    user_id: str | None = Depends(get_optional_user_id),
+) -> SearchSessionCreated:
     """Create a search session and dispatch the LangGraph pipeline via Celery.
 
     Returns a session_id immediately. Poll GET /search/{session_id} for results.
@@ -38,6 +42,7 @@ async def create_search(request: SearchRequest) -> SearchSessionCreated:
         "area_sqm_min": request.area_sqm_min,
         "competitor_tolerance": request.competitor_tolerance,
         "status": "pending",
+        "user_id": user_id,
     }
 
     result = await db.table("search_sessions").insert(session_data).execute()

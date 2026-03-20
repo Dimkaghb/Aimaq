@@ -4,6 +4,7 @@ import structlog
 from google.genai import types
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 from app.services.llm import call_gemini_with_tools
 
 log = structlog.get_logger()
@@ -363,6 +364,10 @@ async def planner_node(state: PipelineState) -> dict:
     tolerance — produces a comprehensive SearchQuery JSON that drives the entire
     downstream pipeline (fetcher, enrichment, scoring, validation, explanation).
     """
+    try:
+        await update_pipeline_step(state["search_id"], "planning")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
 

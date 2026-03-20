@@ -3,6 +3,7 @@ import time
 import structlog
 
 from app.agents.state import PipelineState
+from app.db.queries import update_pipeline_step
 from app.services.scoring import nearest_metro_distance
 
 log = structlog.get_logger()
@@ -14,6 +15,10 @@ async def transit_node(state: PipelineState) -> dict:
     Uses a single batched Overpass query instead of per-listing requests.
     Metro distance is computed locally from hardcoded station coordinates.
     """
+    try:
+        await update_pipeline_step(state["search_id"], "enriching")
+    except Exception:
+        pass
     t0 = time.monotonic()
     errors: list[str] = []
     results: list[dict] = []

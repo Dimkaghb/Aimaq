@@ -98,3 +98,18 @@ async def get_enriched_listings_count() -> int:
     db = await get_db()
     result = await db.table("enriched_listings").select("id", count="exact").execute()
     return result.count or 0
+
+
+async def update_pipeline_step(search_id: str, step: str) -> None:
+    """Update the pipeline step for a search session.
+
+    Called from pipeline nodes to provide real-time progress tracking.
+    """
+    db = await get_db()
+    await (
+        db.table("search_sessions")
+        .update({"status": step})
+        .eq("id", search_id)
+        .execute()
+    )
+    log.debug("pipeline_step_updated", search_id=search_id, step=step)

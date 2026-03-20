@@ -83,7 +83,7 @@ export function AuthForm() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -100,7 +100,10 @@ export function AuthForm() {
 
     setError(null);
     setLoading(false);
-    alert("Проверьте email для подтверждения регистрации.");
+
+    if (data.session) {
+      router.push("/dashboard");
+    }
   }
 
   return (

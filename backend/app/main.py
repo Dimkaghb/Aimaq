@@ -1,0 +1,305 @@
+from contextlib import asynccontextmanager
+
+import structlog
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.routers.businesses import router as businesses_router
+from app.api.v1.routers.dashboard import router as dashboard_router
+from app.api.v1.routers.heatmap import router as heatmap_router
+from app.api.v1.routers.listings import router as listings_router
+from app.api.v1.routers.search import router as search_router
+from app.city import CITY_ID
+
+log = structlog.get_logger()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: init DB client, Redis pool. Shutdown: close connections."""
+    log.info("app_starting")
+    yield
+    log.info("app_shutting_down")
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="LocationIQ API",
+        description="AI-powered commercial real estate finder for Taraz",
+        version="1.0.0",
+        lifespan=lifespan,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # --- Production routers ---
+    app.include_router(search_router, prefix="/api/v1", tags=["search"])
+    app.include_router(listings_router, prefix="/api/v1", tags=["listings"])
+    app.include_router(dashboard_router, prefix="/api/v1", tags=["dashboard"])
+    app.include_router(businesses_router, prefix="/api/v1", tags=["businesses"])
+    app.include_router(heatmap_router, prefix="/api/v1", tags=["heatmap"])
+
+    @app.get("/api/v1/health", status_code=200, tags=["system"])
+    async def health() -> dict:
+        return {"status": "ok", "city": CITY_ID}
+
+    # --- Dev/test endpoints (Phase 1 & 2) ---
+
+    @app.post(
+        "/api/v1/dev/scrape-krisha",
+        status_code=200,
+        tags=["dev"],
+        summary="Run Krisha.kz scraper manually",
+    )
+    async def dev_scrape_krisha(max_pages_per_type: int = 2) -> dict:
+        """Trigger a Krisha scrape. Use small max_pages_per_type for testing."""
+        from app.db.queries import get_listings_count, upsert_listings_batch
+        from app.models.listing import ListingUpsert
+        from app.scrapers.krisha import KrishaScraper
+
+        scraper = KrishaScraper()
+        raw = await scraper.fetch_commercial_listings(max_pages=max_pages_per_type)
+
+        valid: list[ListingUpsert] = []
+        for r in raw:
+            try:
+                valid.append(ListingUpsert(**r))
+            except Exception:
+                pass
+
+        upserted = 0
+        if valid:
+            upserted = await upsert_listings_batch(valid)
+
+        total = await get_listings_count()
+        return {
+            "raw_fetched": len(raw),
+            "valid": len(valid),
+            "upserted": upserted,
+            "total_in_db": total,
+        }
+
+    @app.get(
+        "/api/v1/dev/listings",
+        status_code=200,
+        tags=["dev"],
+        summary="Browse listings in DB",
+    )
+    async def dev_list_listings(limit: int = 20) -> dict:
+        """View listings currently stored in the database."""
+        from app.db.queries import get_all_listings, get_listings_count
+
+        listings = await get_all_listings(limit=limit)
+        total = await get_listings_count()
+        return {
+            "total": total,
+            "showing": len(listings),
+            "listings": listings,
+        }
+
+    @app.post(
+        "/api/v1/dev/enrich",
+        status_code=200,
+        tags=["dev"],
+        summary="Run enrichment on unenriched listings",
+    )
+    async def dev_enrich(limit: int = 10) -> dict:
+        """Enrich listings with competitor count, bus stops, metro distance."""
+        from app.db.queries import (
+            get_enriched_listings_count,
+            get_unenriched_listings,
+            upsert_enriched_listing,
+        )
+        from app.integrations.gis2 import TwoGISClient
+        from app.integrations.osm import OSMClient
+        from scripts.run_enrichment import enrich_listing
+
+        listings = await get_unenriched_listings(limit=limit)
+        if not listings:
+            total = await get_enriched_listings_count()
+            return {"message": "No unenriched listings with coordinates", "total_enriched": total}
+
+        enriched_count = 0
+        errors = 0
+        results: list[dict] = []
+
+        async with TwoGISClient() as gis, OSMClient() as osm:
+            for listing in listings:
+                try:
+                    data = await enrich_listing(listing, gis, osm)
+                    await upsert_enriched_listing(data)
+                    enriched_count += 1
+                    results.append({
+                        "listing_id": listing["id"],
+                        "address": listing.get("address", ""),
+                        "competitor_count": data["competitor_count"],
+                        "bus_stops": data["bus_stops_nearby"],
+                        "transit_score": data["transit_score"],
+                        "metro_distance_m": data["metro_distance_m"],
+                    })
+                except Exception as e:
+                    errors += 1
+                    log.error("dev_enrich_failed", listing_id=listing["id"], error=str(e))
+
+        total = await get_enriched_listings_count()
+        return {
+            "enriched": enriched_count,
+            "errors": errors,
+            "total_enriched_in_db": total,
+            "results": results,
+        }
+
+    @app.get(
+        "/api/v1/dev/enriched",
+        status_code=200,
+        tags=["dev"],
+        summary="Browse enriched listings",
+    )
+    async def dev_list_enriched(limit: int = 20) -> dict:
+        """View enriched listings with their scores."""
+        from app.db.client import get_db
+
+        db = await get_db()
+        result = (
+            await db.table("enriched_listings")
+            .select('*, listings!inner(*)').eq("listings.raw_data->>city", CITY_ID)
+            .limit(limit)
+            .execute()
+        )
+        return {
+            "showing": len(result.data or []),
+            "enriched_listings": result.data or [],
+        }
+
+    @app.get(
+        "/api/v1/dev/score",
+        status_code=200,
+        tags=["dev"],
+        summary="Score enriched listings for a business type",
+    )
+    async def dev_score(
+        business_type: str = "fastfood",
+        budget_tenge: int | None = None,
+        competitor_tolerance: int = 5,
+        top_n: int = 5,
+    ) -> dict:
+        """Run the scoring engine on enriched listings and return ranked results."""
+        from app.db.client import get_db
+        from app.services.scoring import score_listings
+
+        db = await get_db()
+
+        # Fetch enriched listings joined with their listing data
+        result = (
+            await db.table("enriched_listings")
+            .select('*, listings!inner(*)').eq("listings.raw_data->>city", CITY_ID)
+            .execute()
+        )
+        rows = result.data or []
+
+        if not rows:
+            return {"message": "No enriched listings found. Run /dev/enrich first.", "results": []}
+
+        # Flatten joined data for the scoring engine
+        flat: list[dict] = []
+        for row in rows:
+            listing = row.get("listings", {}) or {}
+            flat.append({
+                "id": listing.get("id") or row.get("listing_id"),
+                "title": listing.get("title", ""),
+                "address": listing.get("address", ""),
+                "district": listing.get("district"),
+                "price_tenge": listing.get("price_tenge"),
+                "area_sqm": listing.get("area_sqm"),
+                "url": listing.get("url", ""),
+                "lat": listing.get("lat"),
+                "lng": listing.get("lng"),
+                "footfall_raw": row.get("footfall_raw", 50),
+                "competitor_count": row.get("competitor_count", 0),
+                "bus_stops_nearby": row.get("bus_stops_nearby", 0),
+                "metro_distance_m": row.get("metro_distance_m"),
+                "nearest_metro_name": row.get("nearest_metro_name"),
+            })
+
+        scored = score_listings(
+            flat,
+            business_type=business_type,
+            budget_tenge=budget_tenge,
+            competitor_tolerance=competitor_tolerance,
+            top_n=top_n,
+        )
+
+        return {
+            "business_type": business_type,
+            "budget_tenge": budget_tenge,
+            "competitor_tolerance": competitor_tolerance,
+            "total_evaluated": len(flat),
+            "top_results": scored,
+        }
+
+    @app.post(
+        "/api/v1/dev/explain",
+        status_code=200,
+        tags=["dev"],
+        summary="Test AI explainer on scored listings",
+    )
+    async def dev_explain(
+        business_type: str = "fastfood",
+        budget_tenge: int | None = None,
+        top_n: int = 3,
+    ) -> dict:
+        """Score listings then generate a Russian AI explanation."""
+        from app.agents.nodes.explainer import generate_explanation
+        from app.db.client import get_db
+        from app.services.scoring import score_listings
+
+        db = await get_db()
+        result = (
+            await db.table("enriched_listings")
+            .select('*, listings!inner(*)').eq("listings.raw_data->>city", CITY_ID)
+            .execute()
+        )
+        rows = result.data or []
+        if not rows:
+            return {"message": "No enriched listings. Run /dev/enrich first."}
+
+        flat: list[dict] = []
+        for row in rows:
+            listing = row.get("listings", {}) or {}
+            flat.append({
+                "id": listing.get("id") or row.get("listing_id"),
+                "title": listing.get("title", ""),
+                "address": listing.get("address", ""),
+                "district": listing.get("district"),
+                "price_tenge": listing.get("price_tenge"),
+                "area_sqm": listing.get("area_sqm"),
+                "url": listing.get("url", ""),
+                "lat": listing.get("lat"),
+                "lng": listing.get("lng"),
+                "footfall_raw": row.get("footfall_raw", 50),
+                "competitor_count": row.get("competitor_count", 0),
+                "bus_stops_nearby": row.get("bus_stops_nearby", 0),
+                "metro_distance_m": row.get("metro_distance_m"),
+                "nearest_metro_name": row.get("nearest_metro_name"),
+            })
+
+        scored = score_listings(flat, business_type=business_type, budget_tenge=budget_tenge, top_n=top_n)
+
+        explanation = await generate_explanation(scored, business_type)
+
+        return {
+            "business_type": business_type,
+            "top_listings_count": len(scored),
+            "explanation": explanation,
+        }
+
+    return app
+
+
+app = create_app()

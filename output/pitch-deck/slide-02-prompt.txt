@@ -1,0 +1,15 @@
+Mode: built-in GPT image generation.
+
+Create slide 2 (the problem slide) for the Aimaq pitch deck. Finished flat 16:9 presentation slide, 2048 x 1152, very high quality typography and crisp geometric graphics.
+Use the attached reference for composition: three small labels across the top with a tiny dot and a fine dotted vertical leader descending to a large horizontal three-part rectangular band, then an extremely large left-aligned headline occupying the lower third. Preserve its confident scale, minimalism and generous margins. Do not copy the orange color, English text, dates, numbers or percentages.
+Background: uniform solid warm off-white exactly #FAFBF6. Main text very dark blue charcoal #183039. Accent color Aimaq powder blue #A9D6E5. No orange.
+Top graphic: three equal-width rectangular panels meeting edge-to-edge across the central upper area, in three very pale harmonious tones (pale powder blue, light desaturated sage, warm pale stone). This is a conceptual comparison of three things an entrepreneur must check, NOT a statistical chart. Within each panel, a single oversized, restrained thin-line editorial icon: left a commercial storefront with a small rent-tag shape and NO lettering; middle a simple street map with one location marker; right three small storefront outlines suggesting nearby competitors. Elegant sparse geometry, plenty of blank space, dark muted teal lines. No decorative illustrations, no stock clipart look, no thick outlines, no shadows, no gradients, no rounded cards. Dot and dotted vertical leader above each panel; labels adjacent to dot, clean uppercase sans serif with slightly open tracking.
+Lower area: small thin outlined caption tag above the headline. Large modern sans-serif headline like Haffer or clean Helvetica with excellent Russian Cyrillic. Regular weight, elegant and beautifully spaced, not bold. Headline occupies nearly the full width, on two deliberate lines. The title should be the strongest visual element, readable immediately. Outer safe margins at least 72 px.
+Render ONLY the following text, exactly and legibly:
+Top label left: "АРЕНДА"
+Top label middle: "РАЙОН"
+Top label right: "КОНКУРЕНТЫ"
+Small outlined caption: "Всё приходится проверять вручную"
+Large headline line 1: "Как выбрать место"
+Large headline line 2: "для своего бизнеса?"
+No other text. No Aimaq wordmark, page number, fake metrics, UI controls, watermarks, outside border or mockup. This is a premium minimal investor presentation slide. Sharp correct Cyrillic, flawless clean alignments.

@@ -1,0 +1,12 @@
+Mode: built-in GPT image generation.
+
+Create a finished flat 16:9 Aimaq pitch-deck slide, target 2048 x 1152, crisp premium quality. Same established design system: uniform #FAFBF6 background, dark blue-charcoal #183039 text, powder-blue #A9D6E5 accent, pale sage and warm stone supporting fills. Large regular-weight Haffer-like sans-serif typography with clean correct Cyrillic. Generous whitespace, minimum 72px margins, thin precise lines. Vary composition, do not use three identical panels. Minimal text, no extra logos, dates, page numbers or watermarks, no gradients, no outer frame.
+This slide explains the real backend functionality. Use the reference slide for colors and typography ONLY. No device needed here.
+Headline in large dark charcoal at top left: 'Что стоит за подбором'. Small thin outlined tag below: 'Данные + AI'.
+Below title, make a beautiful clear diagram with FOUR source/function modules arranged in one horizontal row across the width, each on a pale flat rectangular field with a small precise monoline icon. The modules are distinct but aligned, plenty of internal spacing, no rounded cards or logos. Labels and short captions EXACTLY:
+Module 1: 'Krisha.kz' and 'Парсинг объявлений'
+Module 2: '2GIS' and 'Конкуренты рядом'
+Module 3: 'Gemini AI' and 'Критерии и объяснение'
+Module 4: 'Google Maps' and 'Окружение по запросу'
+Colors alternate pale warm stone, pale sage, pale powder blue, pale warm stone. A fine line descends from each toward a centered broad powder-blue module in the lower middle reading 'Aimaq' with smaller line 'Фильтры • Оценка • Подбор'. Make the Google Maps connector DOTTED to distinguish on-demand functionality; other connectors are thin solid lines. Avoid implying Google Maps is the underlying tile map or always queried. A short final downward arrow leads to the compact label 'Варианты на карте'. At bottom left one small quiet line reads 'Карта и остановки — OpenStreetMap'.
+No statistics, percentages, real-time traffic claims, fabricated partnership claims, promises of profitability, database counts or source logos. These are data sources and tools, not sponsors. Layout must be coherent, airy and readable, fine connectors must never cross text. Only the prescribed text, correct Cyrillic throughout. Make it visually elegant and straightforward, explaining function without excessive technical detail.

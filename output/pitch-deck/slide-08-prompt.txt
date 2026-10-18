@@ -1,0 +1,11 @@
+Mode: built-in GPT image generation.
+
+Create a finished flat 16:9 Aimaq pitch-deck slide, target 2048 x 1152, crisp premium quality. Same established design system: uniform #FAFBF6 background, dark blue-charcoal #183039 text, powder-blue #A9D6E5 accent, pale sage and warm stone supporting fills. Large regular-weight Haffer-like sans-serif typography with clean correct Cyrillic. Generous whitespace, minimum 72px margins, thin precise lines. Vary composition, do not use three identical panels. Minimal text, no extra logos, dates, page numbers or watermarks, no gradients, no outer frame.
+Reference 1 is the actual Aimaq dashboard screenshot; reference 2 is the deck's design-system reference.
+Create a beautiful product-function slide with headline top left 'Работа над бизнесом' / 'в одном пространстве'. A small outlined caption under the headline reads 'Личный кабинет'.
+Use a DIFFERENT composition from the preceding MacBook slide: one large slim silver desktop monitor, near frontal, centered toward the LEFT and bottom, showing the dashboard screenshot faithfully inside the screen. Preserve left navigation, greeting, pale-blue map banner, metrics and activity panel. Do not increase the screenshot's real counts or invent customers, businesses or activity. Remove only the incidental black 'Display a menu' tooltip at the screenshot's lower-left corner; it is an OS overlay, not app UI. Maintain authentic app content. Device large enough for recognition, elegant stand, faint contact shadow only.
+RIGHT side: three neatly aligned concise function labels, each with a minimal dark-teal line icon and very light thin rule separating rows:
+'История поиска'
+'Сохранённые подборки'
+'Новый подбор'
+Use ample whitespace and a single pale sage rectangle behind a portion of the monitor to balance composition. Labels remain outside the screen, no overlays on app content. No paragraphs or invented claims. Only prescribed slide copy plus original screenshot text. High quality crisp Russian typography, restrained professional product presentation.

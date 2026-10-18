@@ -1,0 +1,13 @@
+Mode: built-in GPT image generation.
+
+Use case: ads-marketing. Generate a finished flat 16:9 Aimaq pitch-deck slide, target 2048 x 1152, high-quality crisp typography and balanced professional composition.
+Shared design system: solid warm off-white background #FAFBF6, dark blue charcoal #183039 typography, Aimaq powder-blue #A9D6E5 accents, very pale sage and warm stone secondary fills. Clean Haffer-like regular-weight sans serif with excellent Russian Cyrillic, large headings, restrained fine-line geometry, generous whitespace, minimum 72px safe margins. The supplied previous slide is for COLORS, TYPOGRAPHY and RESTRAINT only; vary the layout. No unnecessary copy, no heavy shadows, no gradients, no watermark, no page frame.
+Slide 6: stakeholders and a simple proposed business plan, understated closing slide. Reference image 1 is the actual Aimaq screenshot, reference image 2 the style.
+Headline top left in two compact lines: 'От пилота' / 'к первым оплатам'. Below, a small outlined tag 'План развития'.
+Left half under headline: an elegant vertical three-step roadmap with tiny circles joined by one thin vertical line, not cards. Each step a short medium-sized label and a smaller second line:
+'Пилот' with 'Проверяем пользу'
+'Подписка' with 'Тестируем оплату'
+'Рост' with 'Выходим в новые города'
+Right half: a professional slim silver desktop monitor on a minimal stand, straight-on, using the actual supplied app screenshot inside its screen. Keep the original interface structure, white header, left listing and Taraz map. No invented results or altered business metrics. Soft faint contact shadow beneath the stand, no desk, no decor. Device must be large enough for interface recognition but not overpower title and roadmap.
+Bottom strip separated from upper content by a single thin gray rule: small heading 'Участники', followed by three widely spaced concise labels with restrained thin-outline icons: 'Предприниматели', 'Владельцы помещений', 'Партнёры по данным'. This identifies intended stakeholders, not named or confirmed partners. No logo wall, no invented partner names.
+Limit slide text to exactly those specified lines; no paragraphs, forecasts, dates, prices or invented traction. Strong composition, clear whitespace, perfect Cyrillic. The screen screenshot retains its existing text; do not add extra UI. This should be consistent with the other slides but compositionally different.

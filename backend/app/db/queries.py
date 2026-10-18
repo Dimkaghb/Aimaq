@@ -1,0 +1,155 @@
+import structlog
+
+from app.city import CITY_ID
+from app.db.client import get_db
+from app.models.listing import ListingUpsert
+
+log = structlog.get_logger()
+
+
+async def _current_city_upsert_rows(db, rows: list[dict]) -> list[dict]:
+    """Check source IDs across cities before writes; never relabel legacy rows."""
+    blocked: set[tuple[str, str]] = set()
+    cached: dict[tuple[str, str], dict] = {}
+    for source in {row["source"] for row in rows}:
+        ids = [row["external_id"] for row in rows if row["source"] == source]
+        for start in range(0, len(ids), 100):
+            # Intentionally unscoped metadata lookup protects historical city data.
+            existing = await (
+                db.table("listings").select("external_id, source, raw_data, lat, lng, description, district")
+                .eq("source", source).in_("external_id", ids[start:start + 100]).execute()
+            )
+            cached.update({(row["source"], row["external_id"]): row for row in existing.data or []})
+            blocked.update(
+                (row["source"], row["external_id"]) for row in existing.data or []
+                if (row.get("raw_data") or {}).get("city") != CITY_ID
+            )
+    accepted = [row for row in rows if (row["source"], row["external_id"]) not in blocked]
+    for row in accepted:
+        previous = cached.get((row["source"], row["external_id"]), {})
+        # Index cards omit detail fields. Refresh prices without erasing known locations.
+        for field in ("lat", "lng", "description", "district"):
+            if row.get(field) is None and previous.get(field) is not None:
+                row[field] = previous[field]
+    return accepted
+
+
+async def upsert_listing(listing: ListingUpsert) -> dict | None:
+    """Upsert a listing on (external_id, source). Returns the upserted row."""
+    db = await get_db()
+    data = listing.model_dump()
+    data_rows = await _current_city_upsert_rows(db, [data])
+    if not data_rows:
+        return None
+    result = (
+        await db.table("listings")
+        .upsert(data, on_conflict="external_id,source")
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+async def upsert_listings_batch(listings: list[ListingUpsert]) -> int:
+    """Upsert a batch of listings. Returns count of upserted rows."""
+    db = await get_db()
+
+    # Deduplicate within the batch — keep last occurrence per (external_id, source)
+    seen: dict[tuple[str, str], dict] = {}
+    for l in listings:
+        key = (l.external_id, l.source)
+        seen[key] = l.model_dump()
+
+    data = await _current_city_upsert_rows(db, list(seen.values()))
+    if not data:
+        return 0
+    log.info("listings_deduped", original=len(listings), unique=len(data))
+
+    result = (
+        await db.table("listings")
+        .upsert(data, on_conflict="external_id,source")
+        .execute()
+    )
+    count = len(result.data) if result.data else 0
+    log.info("listings_upserted", count=count)
+    return count
+
+
+async def get_all_listings(limit: int = 1000) -> list[dict]:
+    """Fetch all listings from the DB."""
+    db = await get_db()
+    result = await db.table("listings").select("*").eq("raw_data->>city", CITY_ID).limit(limit).execute()
+    return result.data or []
+
+
+async def get_listings_count() -> int:
+    """Get total count of listings."""
+    db = await get_db()
+    result = await db.table("listings").select("id", count="exact").eq("raw_data->>city", CITY_ID).execute()
+    return result.count or 0
+
+
+async def get_listings_with_coords(limit: int = 1000) -> list[dict]:
+    """Fetch listings that have lat/lng coordinates."""
+    db = await get_db()
+    result = (
+        await db.table("listings")
+        .select("*").eq("raw_data->>city", CITY_ID)
+        .not_.is_("lat", "null")
+        .not_.is_("lng", "null")
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+
+
+async def get_unenriched_listings(limit: int = 500) -> list[dict]:
+    """Fetch listings with coords that don't yet have enrichment data."""
+    db = await get_db()
+    # Get listing IDs that already have enrichment
+    enriched = await db.table("enriched_listings").select('listing_id, listings!inner(id)').eq("listings.raw_data->>city", CITY_ID).execute()
+    enriched_ids = {r["listing_id"] for r in (enriched.data or [])}
+
+    # Get all listings with coords
+    all_listings = await get_listings_with_coords(limit)
+
+    return [l for l in all_listings if l["id"] not in enriched_ids]
+
+
+async def upsert_enriched_listing(data: dict) -> dict | None:
+    """Upsert enrichment data for a listing."""
+    db = await get_db()
+    result = (
+        await db.table("enriched_listings")
+        .upsert(data, on_conflict="listing_id")
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+async def get_enriched_listings_count() -> int:
+    """Get total count of enriched listings."""
+    db = await get_db()
+    result = await db.table("enriched_listings").select('id, listings!inner(id)', count="exact").eq("listings.raw_data->>city", CITY_ID).execute()
+    return result.count or 0
+
+
+async def update_pipeline_step(
+    search_id: str, step: str, meta: dict | None = None
+) -> None:
+    """Update the pipeline step for a search session.
+
+    Called from pipeline nodes to provide real-time progress tracking.
+    meta is optional JSONB for sub-step details (e.g. sources being scraped).
+    """
+    db = await get_db()
+    payload: dict = {"status": step}
+    if meta is not None:
+        payload["status_meta"] = {**meta, "city": CITY_ID}
+    await (
+        db.table("search_sessions")
+        .update(payload)
+        .eq("status_meta->>city", CITY_ID)
+        .eq("id", search_id)
+        .execute()
+    )
+    log.debug("pipeline_step_updated", search_id=search_id, step=step, meta=meta)

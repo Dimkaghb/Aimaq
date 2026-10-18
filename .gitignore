@@ -1,0 +1,8 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Local machine and service state
+.DS_Store
+celerybeat-schedule*

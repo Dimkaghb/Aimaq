@@ -1,0 +1,142 @@
+"use client";
+
+import Link from "next/link";
+import s from "@/modules/search/search.module.css";
+import { useRouter } from "next/navigation";
+import { Questionnaire } from "@/components/Questionnaire";
+import { PipelineProgress } from "@/components/PipelineProgress";
+import { ResultsGrid } from "@/components/ResultsGrid";
+import { useLocationIQStore } from "@/store/useLocationIQStore";
+import { useSearchPolling } from "@/hooks/useSearchPolling";
+
+
+// ─── Loading screen ───────────────────────────────────────────────────────
+
+function LoadingScreen({ onCancel }: { onCancel: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 px-6 py-16">
+      <div
+        className="w-full flex flex-col"
+        style={{
+          maxWidth: 520,
+          borderRadius: 24,
+          backgroundColor: "rgba(255,255,255,0.72)",
+          backdropFilter: "blur(8px)",
+          overflow: "hidden",
+        }}
+      >
+        <PipelineProgress />
+
+        <div
+          className="px-5 pb-5 flex justify-center"
+          style={{ paddingTop: 4 }}
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full font-medium transition-all"
+            style={{
+              padding: "8px 24px",
+              fontSize: 13,
+              backgroundColor: "transparent",
+              color: "var(--neutral-10)",
+              border: "none",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)";
+              e.currentTarget.style.color = "var(--accent-orange)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.color = "var(--neutral-10)";
+            }}
+          >
+            Отменить
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────
+
+export default function AppPage() {
+  const router = useRouter();
+  const appState = useLocationIQStore((s) => s.appState);
+  const sessionId = useLocationIQStore((s) => s.sessionId);
+  const resetSearch = useLocationIQStore((s) => s.resetSearch);
+  const explanation = useLocationIQStore((s) => s.explanation);
+
+  useSearchPolling();
+
+  const isResults =
+    appState === "results" || appState === "detail" || appState === "contact";
+
+  return (
+    <>
+      <style>{`
+        .leaflet-control-attribution {
+          font-size: 10px !important;
+          background: rgba(255,255,255,0.7) !important;
+          padding: 2px 6px !important;
+        }
+        .liq-marker {
+          width: 36px; height: 36px;
+          border-radius: 50%;
+          background-color: var(--marker-color, #16a34a);
+          border: 2.5px solid rgba(255,255,255,0.9);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          display: flex; align-items: center; justify-content: center;
+          color: white; font-weight: 700; font-size: 13px;
+          font-family: var(--font-landing-haffer), sans-serif;
+          transition: transform 0.15s ease; cursor: pointer;
+        }
+        .liq-marker:hover { transform: scale(1.1); }
+        .liq-marker--active {
+          transform: scale(1.12); outline: 6px solid #a9d6e566;
+        }
+        @keyframes liq-pulse {
+          0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
+          70%  { box-shadow: 0 0 0 10px rgba(22,163,74,0); }
+          100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+        }
+        .pipeline-spinner {
+          animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        @keyframes pulse-dot {
+          0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+          40% { opacity: 1; transform: scale(1.2); }
+        }
+      `}</style>
+
+      <div className={s.page}>
+        {!isResults && <header className={s.header}><Link href="/dashboard" className={s.logo}>aimaq<span>.</span></Link><span className={s.breadcrumb}>Подбор локации</span><Link href="/dashboard" className={s.headerLink}>В личный кабинет ↗</Link></header>}
+
+        {/* Idle / Form — questionnaire (no hero step) */}
+        {(appState === "idle" || appState === "form") && (
+          <Questionnaire onBack={() => router.push("/dashboard")} />
+        )}
+
+        {/* Loading — pipeline */}
+        {appState === "loading" && (
+          <LoadingScreen onCancel={resetSearch} />
+        )}
+
+        {/* Results — card grid */}
+        {isResults && (
+          <ResultsGrid
+            key={sessionId}
+            onStartOver={resetSearch}
+            explanation={explanation}
+          />
+        )}
+      </div>
+    </>
+  );
+}

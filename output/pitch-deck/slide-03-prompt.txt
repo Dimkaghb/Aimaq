@@ -1,0 +1,13 @@
+Mode: built-in GPT image generation. Replaces the previous slide 3 composition.
+
+Create a redesigned slide 3, the solution slide, for Aimaq's pitch deck. Finished flat 16:9 slide, target 2048 x 1152, crisp high quality.
+Use the attached slide ONLY for its design system: warm off-white #FAFBF6 background, dark blue charcoal #183039 text, powder-blue #A9D6E5, very pale sage and pale warm stone accents, thin monoline geometry and clean Haffer-like sans-serif with correct Cyrillic.
+COMPLETELY CHANGE THE COMPOSITION. Do not reproduce the three equal panels, dotted top labels or giant bottom headline.
+New composition: an airy asymmetrical editorial layout. Left third: a small thin outlined tag reading 'От идеи до помещения', then a generously sized regular-weight headline in three lines:
+'Всё для выбора'
+'места —'
+'в Aimaq'
+Keep headline dark charcoal, clean sans serif, carefully spaced, substantial but contained in the left third. Lots of calm empty space below.
+Right two-thirds: one elegant large hub-and-spoke process diagram. In the center, a large clean powder-blue circle containing only the word 'Aimaq' in dark teal sans serif. Three satellite modules around it, spaced with intentional asymmetry: upper-left small thin outline speech bubble icon with label 'Запрос'; upper-right thin outline map-with-location-pin icon and label 'Подбор'; lower-right two thin outline comparison sheets with checkmarks and label 'Сравнение'. Each satellite sits on a very pale flat rectangular field (one pale sage, one pale warm stone, one very pale blue), with generous padding and no rounded corners or shadows. Each is connected to the central circle by a single fine dark-teal line with a tiny dot at the endpoint. Connections must be tidy, do not cross icons or words. The circle and modules together suggest one place connecting the process, not a data graph. Keep diagram entirely in the right two thirds, no overlap with headline.
+Refined balance, disciplined whitespace, understated precise icons, light editorial visual language. No stock clipart, no 3D, no gradients, no textures, no oversized arrows, no statistical graphics.
+ONLY visible text: 'От идеи до помещения', 'Всё для выбора', 'места —', 'в Aimaq', central 'Aimaq', and labels 'Запрос', 'Подбор', 'Сравнение'. No other text, numbers, dates, footers, watermarks or frame. All text readable, correct and neatly aligned. Minimum 72px outer margins. This is a beautiful minimal slide matching the deck's colors and typography while having a genuinely different layout.

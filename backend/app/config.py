@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     secret_key: str
 
-    model_config = {"env_file": ".env", "case_sensitive": False}
+    model_config = {"env_file": ".env", "case_sensitive": False, "extra": "ignore"}
 
 
 settings = Settings()

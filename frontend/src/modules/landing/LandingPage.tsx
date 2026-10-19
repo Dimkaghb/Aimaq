@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { MotionConfig, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { CircleReveal, CountUp, FadeOnExit, HeroArt, Parallax, Reveal, RevealLines, ScrollProgress, ScrollSteps, Stagger, StaggerItem, WordScrub } from "./scroll-fx";
 import { landingFont } from "./fonts";
 import styles from "./landing.module.css";
 
@@ -54,30 +56,58 @@ function MapPreview({ score }: { score: number }) {
       <circle cx="298" cy="210" r="87" fill="#a9d6e5" fillOpacity=".32" stroke="#6fa6b7" strokeDasharray="5 5" />
     </svg>
     <span className={styles.mapLabel}>Пример анализа района</span>
-    <span className={`${styles.mapPin} ${styles.pinOne}`}>{score}</span>
-    <span className={`${styles.mapPin} ${styles.pinTwo}`}>{score - 8}</span>
-    <span className={`${styles.mapPin} ${styles.pinThree}`}>{score - 13}</span>
+    {[styles.pinOne, styles.pinTwo, styles.pinThree].map((position, i) => <motion.span
+      key={`${score}-${i}`}
+      className={`${styles.mapPin} ${position}`}
+      initial={{ scale: 0, y: -14, rotate: -10 }}
+      whileInView={{ scale: 1, y: 0, rotate: -10 }}
+      viewport={{ once: true }}
+      transition={{ type: "spring", stiffness: 380, damping: 18, delay: 0.1 + i * 0.09 }}
+    >{[score, score - 8, score - 13][i]}</motion.span>)}
     <span className={styles.mapLegend}><i /> Подходящие локации</span>
   </div>;
 }
 
-function LocationDemo() {
-  const [selected, setSelected] = useState(0);
+function LocationDemo({ selected, onSelect }: { selected: number; onSelect: (index: number) => void }) {
   const business = businesses[selected];
   return <div className={styles.locationDemo}>
     <div className={styles.demoTop}><span><span className={styles.smallBrand}>a</span> Обзор локаций</span><span className={styles.demoBadge}>Демо</span></div>
-    <div className={styles.demoTabs} role="group" aria-label="Выберите тип бизнеса для примера">{businesses.map((item, i) => <button key={item.label} type="button" aria-pressed={selected === i} onClick={() => setSelected(i)} className={selected === i ? styles.activeTab : ""}><Icon name={item.icon} size={15} />{item.label}</button>)}</div>
+    <div className={styles.demoTabs} role="group" aria-label="Выберите тип бизнеса для примера">{businesses.map((item, i) => <button key={item.label} type="button" aria-pressed={selected === i} onClick={() => onSelect(i)} className={selected === i ? styles.activeTab : ""}><Icon name={item.icon} size={15} />{item.label}</button>)}</div>
     <MapPreview score={business.score} />
-    <div className={styles.locationResult} aria-live="polite"><div><span className={styles.microLabel}>ЛУЧШЕЕ СОВПАДЕНИЕ</span><h4>{business.location}</h4><p>Под ваш формат: {business.label.toLowerCase()}</p></div><div className={styles.score}>{business.score}<small>из 100</small></div></div>
+    <div className={styles.locationResult} aria-live="polite"><div><span className={styles.microLabel}>ЛУЧШЕЕ СОВПАДЕНИЕ</span><h4>{business.location}</h4><p>Под ваш формат: {business.label.toLowerCase()}</p></div><div className={styles.score}><CountUp value={business.score} /><small>из 100</small></div></div>
+  </div>;
+}
+
+/* Pinned on wide, tall screens: scroll progress steps through the business types.
+   Tabs stay clickable; scrolling only takes over when the scroll-derived step changes. */
+const PIN_QUERY = "(min-width: 801px) and (min-height: 680px)";
+
+function PinnedLocation() {
+  const [selected, setSelected] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  const lastStep = useRef(0);
+  const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
+  useMotionValueEvent(scrollYProgress, "change", (progress) => {
+    if (!window.matchMedia(PIN_QUERY).matches) return;
+    const step = Math.min(businesses.length - 1, Math.max(0, Math.floor(((progress - 0.05) / 0.9) * businesses.length)));
+    if (step === lastStep.current) return;
+    lastStep.current = step;
+    setSelected(step);
+  });
+  return <div ref={track} className={styles.pinTrack}>
+    <Reveal as="article" className={styles.featurePanel}>
+      <div className={styles.featureCopy}><span className={styles.sectionNumber}>01 / ПОДБОР ЛОКАЦИЙ</span><h3>Весь район.<br />В одном окне.</h3><p>Помещения, трафик и конкуренты — на одной карте. Укажите свой формат, бюджет и район. Мы соберём локации, которые подходят именно вам.</p><Action>Найти своё место</Action><span className={styles.featureNote}>Листайте или переключайте формат бизнеса →</span></div>
+      <div className={`${styles.featureVisual} ${styles.blueVisual}`}><LocationDemo selected={selected} onSelect={setSelected} /></div>
+    </Reveal>
   </div>;
 }
 
 function ScorePreview() {
   return <div className={styles.scorePreview}>
     <div className={styles.scoreHeading}><span className={styles.scoreIcon}><Icon name="chart" size={24} /></span><div><h4>За каждой оценкой — данные</h4><p>Пример разбора локации</p></div></div>
-    <div className={styles.bigScore}>92<span>/ 100</span><span className={styles.scoreTag}>Высокий потенциал</span></div>
-    <div className={styles.factorList}>{["Пешеходный трафик", "Конкурентное окружение", "Транспортная доступность", "Соответствие бюджету"].map((factor, i) => <div key={factor}><div className={styles.factorLabel}><span>{factor}</span><span>{businesses[0].factors[i]}</span></div><div className={styles.factorTrack}><span style={{ width: `${businesses[0].factors[i]}%` }} /></div></div>)}</div>
-    <div className={styles.insight}><Icon name="layers" size={18} /><p>Высокий трафик и близость транспорта делают эту локацию перспективной для кофейни.</p></div>
+    <div className={styles.bigScore}><CountUp value={92} /><span>/ 100</span><span className={styles.scoreTag}>Высокий потенциал</span></div>
+    <div className={styles.factorList}>{["Пешеходный трафик", "Конкурентное окружение", "Транспортная доступность", "Соответствие бюджету"].map((factor, i) => <div key={factor}><div className={styles.factorLabel}><span>{factor}</span><span>{businesses[0].factors[i]}</span></div><div className={styles.factorTrack}><motion.span style={{ width: `${businesses[0].factors[i]}%`, originX: 0 }} initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, margin: "-10% 0px" }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 + i * 0.1 }} /></div></div>)}</div>
+    <Reveal className={styles.insight} delay={0.6} y={10}><Icon name="layers" size={18} /><p>Высокий трафик и близость транспорта делают эту локацию перспективной для кофейни.</p></Reveal>
   </div>;
 }
 
@@ -91,69 +121,86 @@ const faqs = [
 
 export function LandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [overImage, setOverImage] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const nav = [["Возможности", "#features"], ["Как это работает", "#how-it-works"], ["Тарифы", "#pricing"]];
 
-  return <div className={`${styles.landing} ${landingFont.variable}`} lang="ru">
+  return <MotionConfig reducedMotion="user"><div className={`${styles.landing} ${landingFont.variable}`} lang="ru">
     <a href="#main-content" className={styles.skipLink}>Перейти к содержимому</a>
-    <header className={styles.header}>
+    <header className={`${styles.header} ${scrolled ? styles.scrolled : ""} ${overImage && !mobileOpen ? styles.headerOver : ""}`}>
       <nav className={`${styles.container} ${styles.navigation}`} aria-label="Основная навигация">
         <Brand />
         <div className={styles.desktopLinks}>{nav.map(([label, href]) => <a key={href} href={href}>{label}</a>)}</div>
         <div className={styles.navActions}><Link href="/auth" className={styles.login}>Войти</Link><Link href="/auth" className={`${styles.button} ${styles.primaryButton} ${styles.navButton}`}>Начать подбор <Icon name="arrow" size={16} /></Link></div>
         <button type="button" className={styles.menuToggle} onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"} aria-expanded={mobileOpen} aria-controls="landing-mobile-nav"><Icon name={mobileOpen ? "close" : "menu"} /></button>
       </nav>
+      <ScrollProgress className={styles.progress} />
       {mobileOpen && <nav id="landing-mobile-nav" className={styles.mobileNav} aria-label="Мобильная навигация" onKeyDown={(event) => { if (event.key === "Escape") setMobileOpen(false); }}>{nav.map(([label, href]) => <a key={href} href={href} onClick={() => setMobileOpen(false)}>{label}</a>)}<Link href="/auth">Войти в Aimaq <Icon name="arrow" size={16} /></Link></nav>}
     </header>
 
     <main id="main-content">
       <section className={`${styles.container} ${styles.hero}`} aria-labelledby="hero-title">
-        <h1 id="hero-title">Хороший бизнес начинается<br className={styles.desktopBreak} /> с правильного места.</h1>
-        <p className={styles.heroDescription}>Найдите локацию, где ваш бизнес будет к месту.<br className={styles.desktopBreak} /> Aimaq изучит район, сравнит помещения и объяснит выбор.</p>
-        <div className={styles.heroActions}><Action /><a href="#how-it-works" className={styles.textLink}>Как это работает <Icon name="arrow" size={17} /></a></div>
-        <div className={styles.heroArt}>
+        <FadeOnExit>
+          <h1 id="hero-title"><RevealLines immediate lines={["Хороший бизнес начинается", "с правильного места."]} /></h1>
+          <Reveal as="p" immediate delay={0.25} className={styles.heroDescription}>Найдите локацию, где ваш бизнес будет к месту.<br className={styles.desktopBreak} /> Aimaq изучит район, сравнит помещения и объяснит выбор.</Reveal>
+          <Reveal immediate delay={0.35} className={styles.heroActions}><Action /><a href="#how-it-works" className={styles.textLink}>Как это работает <Icon name="arrow" size={17} /></a></Reveal>
+        </FadeOnExit>
+        <HeroArt className={styles.heroArt}>
           <Image src="/images/taraz-neighborhood-2k.webp" alt="Рисованный Тараз: жилой квартал, зелёные улицы и прогулочная площадь" fill priority sizes="(max-width: 1320px) 94vw, 1240px" className={styles.heroImage} />
-        </div>
+        </HeroArt>
       </section>
 
       <section className={`${styles.container} ${styles.intro}`} aria-labelledby="intro-title">
-        <div className={styles.introCopy}><h2 id="intro-title">Вы знаете свой бизнес.<br />Мы поможем узнать район.</h2><div><p>За красивой витриной — целый район. Кто проходит мимо, что открыто по соседству, удобно ли добираться. Aimaq собирает эти детали в понятную картину, чтобы вам было проще выбрать.</p><a href="#features" className={styles.textLink}>Посмотреть возможности <Icon name="arrow" size={18} /></a></div></div>
-        <div className={styles.businessTypes}><p>Для большого шага в вашем небольшом бизнесе</p><div>{businesses.map((business) => <span key={business.label}><Icon name={business.icon} size={25} />{business.label}</span>)}</div></div>
+        <div className={styles.introCopy}><h2 id="intro-title"><WordScrub lines={["Вы знаете свой бизнес.", "Мы поможем узнать район."]} /></h2><Reveal delay={0.1}><p>За красивой витриной — целый район. Кто проходит мимо, что открыто по соседству, удобно ли добираться. Aimaq собирает эти детали в понятную картину, чтобы вам было проще выбрать.</p><a href="#features" className={styles.textLink}>Посмотреть возможности <Icon name="arrow" size={18} /></a></Reveal></div>
+        <div className={styles.businessTypes}><p>Для большого шага в вашем небольшом бизнесе</p><Stagger>{businesses.map((business) => <StaggerItem as="span" key={business.label}><Icon name={business.icon} size={25} />{business.label}</StaggerItem>)}</Stagger></div>
       </section>
 
       <section className={`${styles.container} ${styles.features}`} id="features" aria-labelledby="features-title">
-        <div className={styles.sectionHeading}><span className={styles.eyebrow}>Меньше догадок. Больше ясности.</span><h2 id="features-title">Увидеть потенциал.<br />Найти своё место.</h2></div>
-        <article className={styles.featurePanel}>
-          <div className={styles.featureCopy}><span className={styles.sectionNumber}>01 / ПОДБОР ЛОКАЦИЙ</span><h3>Весь район.<br />В одном окне.</h3><p>Помещения, трафик и конкуренты — на одной карте. Укажите свой формат, бюджет и район. Мы соберём локации, которые подходят именно вам.</p><Action>Найти своё место</Action><span className={styles.featureNote}>Попробуйте переключить формат бизнеса →</span></div>
-          <div className={`${styles.featureVisual} ${styles.blueVisual}`}><LocationDemo /></div>
-        </article>
-        <article className={`${styles.featurePanel} ${styles.reversePanel}`}>
-          <div className={`${styles.featureVisual} ${styles.sandVisual}`}><ScorePreview /></div>
+        <Reveal className={styles.sectionHeading}><span className={styles.eyebrow}>Меньше догадок. Больше ясности.</span><h2 id="features-title">Увидеть потенциал.<br />Найти своё место.</h2></Reveal>
+        <PinnedLocation />
+        <Reveal as="article" className={`${styles.featurePanel} ${styles.reversePanel}`}>
+          <div className={`${styles.featureVisual} ${styles.sandVisual}`}><Parallax amount={16}><ScorePreview /></Parallax></div>
           <div className={styles.featureCopy}><span className={styles.sectionNumber}>02 / ПОНЯТНАЯ АНАЛИТИКА</span><h3>Не просто рейтинг.<br />Причины за ним.</h3><p>У каждой локации — своя оценка и понятное объяснение. Сравните поток людей, окружение и стоимость аренды. Принимайте решение с открытыми глазами.</p><Action>Посмотреть подборку</Action></div>
-        </article>
+        </Reveal>
       </section>
 
       <section className={`${styles.container} ${styles.howSection}`} id="how-it-works" aria-labelledby="how-title">
-        <div className={styles.splitHeading}><h2 id="how-title">От идеи до адреса.<br />Три простых шага.</h2><p>Расскажите о своём деле.<br />Остальное начнётся с Aimaq.</p></div>
-        <div className={styles.steps}>{[
+        <Reveal className={styles.splitHeading}><h2 id="how-title">От идеи до адреса.<br />Три простых шага.</h2><p>Расскажите о своём деле.<br />Остальное начнётся с Aimaq.</p></Reveal>
+        <ScrollSteps className={styles.steps} fillClassName={styles.stepFill} items={[
           ["01", "Расскажите о бизнесе", "Кофейня у дома или новый офис? Выберите формат, район, бюджет и нужную площадь."],
           ["02", "Изучите подборку", "Сравните подходящие помещения на карте и узнайте, что стоит за оценкой каждого."],
           ["03", "Сделайте следующий шаг", "Сохраните понравившиеся варианты и подготовьте обращение к арендодателю."],
-        ].map(([number, title, description]) => <article key={number}><span>{number}<Icon name="arrow" size={18} /></span><h3>{title}</h3><p>{description}</p></article>)}</div>
+        ].map(([number, title, description]) => <><span>{number}<Icon name="arrow" size={18} /></span><h3>{title}</h3><p>{description}</p></>)} />
       </section>
 
       <section className={styles.pricingSection} id="pricing" aria-labelledby="pricing-title"><div className={styles.container}>
-        <div className={styles.splitHeading}><div><span className={styles.eyebrow}>В вашем темпе</span><h2 id="pricing-title">Начните с одного места.<br />Думайте о большем.</h2></div><p>Первый подбор — бесплатно.<br />Больше возможностей, когда они нужны.</p></div>
-        <div className={styles.pricingGrid}>
-          <article className={styles.priceCard}><span className={styles.planLabel}>Базовый</span><h3>Бесплатно</h3><p>Чтобы найти отправную точку для своего дела.</p><ul>{["До 5 лучших локаций в подборке", "Подбор по району и бюджету", "Оценка трафика, конкурентов и транспорта", "Черновик обращения арендодателю"].map((item) => <li key={item}><Icon name="check" size={17} />{item}</li>)}</ul><Action secondary>Начать бесплатно</Action></article>
-          <article className={`${styles.priceCard} ${styles.premiumCard}`}><span className={styles.planLabel}>Премиум <span>Для новых горизонтов</span></span><h3>49 000 ₸<small> / месяц</small></h3><p>Для регулярного поиска и подробного сравнения.</p><ul>{["Всё, что есть в Базовом", "Расширенный рейтинг локаций", "Подробный разбор факторов", "Обновление подбора при смене параметров"].map((item) => <li key={item}><Icon name="check" size={17} />{item}</li>)}</ul><Action>Начать с Aimaq</Action></article>
-        </div>
+        <Reveal className={styles.splitHeading}><div><span className={styles.eyebrow}>В вашем темпе</span><h2 id="pricing-title">Начните с одного места.<br />Думайте о большем.</h2></div><p>Первый подбор — бесплатно.<br />Больше возможностей, когда они нужны.</p></Reveal>
+        <Stagger className={styles.pricingGrid}>
+          <StaggerItem as="article" className={styles.priceCard}><span className={styles.planLabel}>Базовый</span><h3>Бесплатно</h3><p>Чтобы найти отправную точку для своего дела.</p><ul>{["До 5 лучших локаций в подборке", "Подбор по району и бюджету", "Оценка трафика, конкурентов и транспорта", "Черновик обращения арендодателю"].map((item) => <li key={item}><Icon name="check" size={17} />{item}</li>)}</ul><Action secondary>Начать бесплатно</Action></StaggerItem>
+          <StaggerItem as="article" className={`${styles.priceCard} ${styles.premiumCard}`}><span className={styles.planLabel}>Премиум <span>Для новых горизонтов</span></span><h3>49 000 ₸<small> / месяц</small></h3><p>Для регулярного поиска и подробного сравнения.</p><ul>{["Всё, что есть в Базовом", "Расширенный рейтинг локаций", "Подробный разбор факторов", "Обновление подбора при смене параметров"].map((item) => <li key={item}><Icon name="check" size={17} />{item}</li>)}</ul><Action>Начать с Aimaq</Action></StaggerItem>
+        </Stagger>
       </div></section>
 
-      <section className={`${styles.container} ${styles.faqSection}`} id="questions" aria-labelledby="faq-title"><div><span className={styles.eyebrow}>Давайте разберёмся</span><h2 id="faq-title">Хорошие вопросы.</h2></div><div className={styles.faqList}>{faqs.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+      <section className={`${styles.container} ${styles.faqSection}`} id="questions" aria-labelledby="faq-title"><Reveal><span className={styles.eyebrow}>Давайте разберёмся</span><h2 id="faq-title">Хорошие вопросы.</h2></Reveal><Reveal className={styles.faqList} delay={0.1}>{faqs.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</Reveal></section>
 
-      <section className={styles.closing} aria-labelledby="closing-title"><div className={styles.closingArt} aria-hidden="true" /><div className={styles.closingContent}><span className={styles.eyebrow}>Ваше дело. Ваш район.</span><h2 id="closing-title">Большие планы?<br />Начните с места.</h2><p>Возможно, оно уже ждёт вас за углом.</p><Action>Найти свою локацию</Action></div></section>
+      <CircleReveal
+        labelledBy="closing-title"
+        onCoverChange={setOverImage}
+        classes={{ track: styles.closingTrack, stage: styles.closing, art: styles.closingArt, shade: styles.closingShade, content: styles.closingContent }}
+        art={<Image src="/images/taraz-neighborhood-2k.webp" alt="" fill sizes="100vw" className={styles.closingImage} />}
+      >
+        <span className={styles.eyebrow}>Ваше дело. Ваш район.</span>
+        <h2 id="closing-title">Большие планы?<br />Начните с места.</h2>
+        <p>Возможно, оно уже ждёт вас за углом.</p>
+        <Action>Найти свою локацию</Action>
+      </CircleReveal>
     </main>
 
-    <footer className={styles.footer}><div className={styles.container}><div className={styles.footerTop}><div><Brand /><p>Хорошее место для вашего дела.</p></div><div className={styles.footerLinks}><div><span>Продукт</span><a href="#features">Возможности</a><a href="#how-it-works">Как это работает</a><a href="#pricing">Тарифы</a></div><div><span>Начать</span><Link href="/auth">Подобрать локацию</Link><Link href="/auth">Личный кабинет</Link><a href="#questions">Вопросы и ответы</a></div></div></div><div className={styles.footerBottom}><span>© {new Date().getFullYear()} Aimaq</span><span>Создано для бизнеса в Казахстане</span><span><Icon name="globe" size={16} /> Русский</span></div></div></footer>
-  </div>;
+  </div></MotionConfig>;
 }

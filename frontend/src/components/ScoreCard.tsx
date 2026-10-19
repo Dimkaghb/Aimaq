@@ -5,7 +5,7 @@ import type { ScoredListing } from "@/types";
 import { ScoreRing } from "./ScoreRing";
 import { ScoreBreakdown } from "./ScoreBreakdown";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
-import { formatPrice, formatArea, getScoreBadges } from "@/lib/score-utils";
+import { formatPrice, formatArea, formatCount, getScoreBadges } from "@/lib/score-utils";
 import { postContact } from "@/lib/api";
 
 interface ScoreCardProps {
@@ -190,7 +190,7 @@ export function ScoreCard({
             </p>
           )}
           <p className="text-[13px]" style={{ color: "var(--neutral-10)" }}>
-            Остановки рядом: {listing.bus_stops_nearby} · Конкуренты: {listing.competitor_count}
+            Остановки рядом: {formatCount(listing.bus_stops_nearby)} · Конкуренты: {formatCount(listing.competitor_count)}
           </p>
 
           {/* Score breakdown */}

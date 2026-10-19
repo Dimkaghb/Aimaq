@@ -34,8 +34,8 @@ export interface ScoredListing {
   total_score: number;
   score_breakdown: ScoreBreakdown;
   url: string;
-  competitor_count: number;
-  bus_stops_nearby: number;
+  competitor_count: number | null; // null = could not be measured
+  bus_stops_nearby: number | null;
   metro_distance_m: number | null;
   nearest_metro_name: string | null;
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { ScoreBreakdown } from "./ScoreBreakdown";
-import { formatPrice, formatArea } from "@/lib/score-utils";
+import { formatPrice, formatArea, formatCount } from "@/lib/score-utils";
 import { saveBusiness } from "@/lib/api";
 import { DISTRICT_REVERSE_MAP, type ScoredListing } from "@/types";
 import { DashboardIcon as Icon } from "@/modules/dashboard/components/DashboardIcon";
@@ -75,7 +75,7 @@ export function ResultsGrid({ onStartOver, explanation }: { onStartOver: () => v
               <div className={s.cardPrice}>{listing.price_tenge != null ? <><strong>{formatPrice(listing.price_tenge)}</strong><span>/ месяц</span></> : <span>Цена по запросу</span>}</div>
               <div className={s.cardActions}><button type="button" disabled={!hasCoordinates(listing)} onClick={() => showOnMap(listing)}><Icon name="pin" size={14} />{hasCoordinates(listing) ? "На карте" : "Без координат"}</button><label title={!checked && selected.length >= 3 ? "Можно сравнить до трёх помещений" : "Добавить к сравнению"}><input type="checkbox" checked={checked} disabled={!checked && selected.length >= 3} onChange={() => toggleCompare(listing.listing_id)} />Сравнить</label><button type="button" onClick={() => toggleDetails(listing)} aria-expanded={expanded}>{expanded ? "Свернуть" : "Подробнее"}</button></div>
               {expanded && <div className={s.cardDetails} id={`details-${listing.listing_id}`}>
-                <div className={s.detailFacts}><span><strong>{listing.bus_stops_nearby}</strong> остановок рядом</span><span><strong>{listing.competitor_count}</strong> конкурентов найдено</span></div>
+                <div className={s.detailFacts}><span><strong>{formatCount(listing.bus_stops_nearby)}</strong> остановок рядом</span><span><strong>{formatCount(listing.competitor_count)}</strong> конкурентов найдено</span></div>
                 <ScoreBreakdown breakdown={listing.score_breakdown} />
                 <p className={s.dataNote}>Количество найденных объектов зависит от покрытия источников.</p>
                 {businessType && <NeighborhoodBrief listingId={listing.listing_id} businessType={businessType} />}
@@ -101,7 +101,7 @@ function Comparison({ listings, onClose }: { listings: ScoredListing[]; onClose:
     ["Аренда / месяц", (item: ScoredListing) => item.price_tenge != null ? formatPrice(item.price_tenge) : "Не указана"],
     ["Площадь", (item: ScoredListing) => item.area_sqm ? formatArea(item.area_sqm) : "Не указана"],
     ["Оценка Aimaq", (item: ScoredListing) => `${Math.round(item.total_score)} / 100`],
-    ["Остановок найдено", (item: ScoredListing) => item.bus_stops_nearby],
-    ["Конкурентов найдено", (item: ScoredListing) => item.competitor_count],
+    ["Остановок найдено", (item: ScoredListing) => formatCount(item.bus_stops_nearby)],
+    ["Конкурентов найдено", (item: ScoredListing) => formatCount(item.competitor_count)],
   ].map(([label, render]) => <tr key={label as string}><th>{label as string}</th>{listings.map((item) => <td key={item.listing_id}>{(render as (item: ScoredListing) => string | number)(item)}</td>)}</tr>)}</tbody></table></div><p>Перед решением посетите помещение и уточните условия аренды.</p></dialog>;
 }

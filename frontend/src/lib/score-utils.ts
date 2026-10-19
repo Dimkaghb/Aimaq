@@ -170,3 +170,8 @@ export function getScoreBadges(listing: ScoredListing): {
 
   return { top, low };
 }
+
+/** A measured count, or "н/д" when it could not be measured (unknown is not zero). */
+export function formatCount(value: number | null | undefined): string {
+  return value == null ? "н/д" : String(value);
+}

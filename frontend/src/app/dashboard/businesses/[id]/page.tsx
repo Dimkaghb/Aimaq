@@ -8,7 +8,7 @@ import { TopBar } from "@/modules/dashboard/components/TopBar";
 import { ScoreRing } from "@/components/ScoreRing";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchSavedBusiness } from "@/lib/api";
-import { formatPrice, formatArea } from "@/lib/score-utils";
+import { formatPrice, formatArea, formatCount } from "@/lib/score-utils";
 import type { ScoredListing } from "@/types";
 import type { UserProfile } from "@/types/dashboard";
 
@@ -77,13 +77,13 @@ function ListingCard({ listing }: { listing: ScoredListing }) {
             className="text-[12px] font-medium rounded-full px-2.5 py-0.5"
             style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}
           >
-            {listing.bus_stops_nearby} ост.
+            {formatCount(listing.bus_stops_nearby)} ост.
           </span>
           <span
             className="text-[12px] font-medium rounded-full px-2.5 py-0.5"
             style={{ backgroundColor: "var(--beige-10)", color: "var(--neutral-20)" }}
           >
-            {listing.competitor_count} конкур.
+            {formatCount(listing.competitor_count)} конкур.
           </span>
         </div>
 

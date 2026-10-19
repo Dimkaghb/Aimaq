@@ -457,7 +457,7 @@ export function PipelineProgress() {
           <p style={{ fontSize: 12, color: "var(--neutral-10)" }}>
             {isComplete
               ? "Подготавливаем результаты…"
-              : `Шаг ${doneCount + 1} из ${STEPS.length} · ~30–60 сек`}
+              : `Шаг ${doneCount + 1} из ${STEPS.length} · ~1–2 мин`}
           </p>
         </div>
         <span

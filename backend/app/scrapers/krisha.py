@@ -1,13 +1,14 @@
 import json
 import re
 import time
+from datetime import date, datetime, timedelta, timezone
 
 import structlog
 from bs4 import BeautifulSoup
 
 from app.city import CITY_ID, DISTRICT_ALIASES, in_city_bounds, normalize_district
 from app.models.listing import ListingUpsert
-from app.scrapers.base import BaseScraper
+from app.scrapers.base import BaseScraper, ScraperBlocked
 
 log = structlog.get_logger()
 
@@ -20,6 +21,24 @@ PROPERTY_TYPE_MAP: dict[int, str] = {
     11: "pharmacy",  # Медцентры и аптеки
 }
 
+# Krisha lists every permitted use of a space in the card title, e.g.
+# "Свободное назначение, офисы, общепит, склады · 300 м²". Map those phrases to our tags.
+USE_CASE_PATTERNS: list[tuple[str, str]] = [
+    ("свободное назначение", "free"),
+    ("офис", "office"),
+    ("кабинет", "office"),
+    ("магазин", "retail"),
+    ("общепит", "cafe"),
+    ("медцентр", "pharmacy"),
+    ("аптек", "pharmacy"),
+    ("склад", "warehouse"),
+]
+
+_MONTHS = {
+    "янв": 1, "фев": 2, "мар": 3, "апр": 4, "ма": 5, "июн": 6,
+    "июл": 7, "авг": 8, "сен": 9, "окт": 10, "ноя": 11, "дек": 12,
+}
+
 # Districts are only assigned when explicitly stated by the source.
 
 BASE_URL = "https://krisha.kz"
@@ -30,7 +49,7 @@ class KrishaScraper(BaseScraper):
     """Scraper for Krisha.kz commercial real estate listings in Taraz."""
 
     async def fetch_commercial_listings(
-        self, district: str | None = None, max_pages: int = 15
+        self, district: str | None = None, max_pages: int = 40
     ) -> list[dict]:
         """Fetch all commercial listings across relevant property types.
 
@@ -63,72 +82,86 @@ class KrishaScraper(BaseScraper):
             total_listings=len(all_listings),
             duration_ms=duration_ms,
         )
+        # A listing can appear in several use-case feeds; keep the first, its use_cases are on the card.
+        unique = list({l["external_id"]: l for l in reversed(all_listings)}.values())
+        unique.reverse()
         district = normalize_district(district)
-        return [l for l in all_listings if not district or l.get("district") == district]
+        return [l for l in unique if not district or l.get("district") == district]
 
     async def _fetch_type(
-        self, type_id: int, type_name: str, max_pages: int = 15
+        self, type_id: int, type_name: str, max_pages: int = 40
     ) -> list[dict]:
-        """Fetch listings for a specific commercial property type."""
+        """Fetch every page of one commercial use-case feed.
+
+        A block that survives backoff ends the crawl early and returns what was collected,
+        unless nothing was collected yet.
+        """
         listings: list[dict] = []
+        seen_ids: set[str] = set()
         page = 1
 
         while page <= max_pages:
-            params: dict[str, str | int] = {
-                "das[com.use_case]": type_id,
-                "page": page,
-            }
-            resp = await self.get(COMMERCIAL_RENT_URL, params=params)
+            params: dict[str, str | int] = {"das[com.use_case]": type_id, "page": page}
+            try:
+                resp = await self.get(COMMERCIAL_RENT_URL, params=params)
+            except ScraperBlocked:
+                if not listings:
+                    raise
+                log.warning("krisha_crawl_truncated", type_name=type_name, page=page, collected=len(listings))
+                break
             if "/taraz/" not in resp.url.path:
                 raise ValueError("Krisha redirected outside the Taraz feed")
-            page_listings = self._parse_index_page(resp.text, type_name)
 
-            if not page_listings:
+            page_listings, card_count = self._parse_index(resp.text, type_name)
+            # An empty *page* ends the feed; a page whose cards were all filtered (promoted
+            # cards from other cities) must not.
+            if card_count == 0:
                 break
 
-            listings.extend(page_listings)
-            log.debug(
-                "krisha_page_fetched",
-                type_name=type_name,
-                page=page,
-                count=len(page_listings),
-            )
+            fresh = [item for item in page_listings if item["external_id"] not in seen_ids]
+            seen_ids.update(item["external_id"] for item in fresh)
+            listings.extend(fresh)
+            log.debug("krisha_page_fetched", type_name=type_name, page=page, cards=card_count, new=len(fresh))
 
-            # Check if there's a next page
             if not self._has_next_page(resp.text):
                 break
-
             page += 1
 
         return listings
 
     def _parse_index_page(self, html: str, type_name: str) -> list[dict]:
         """Parse a Krisha.kz search results page and extract listing data."""
+        return self._parse_index(html, type_name)[0]
+
+    def _parse_index(self, html: str, type_name: str) -> tuple[list[dict], int]:
+        """Parse a results page. Returns (listings, number_of_cards_on_page)."""
         soup = BeautifulSoup(html, "lxml")
         cards = soup.select("div.a-card[data-product-id]")
+        seen_at = datetime.now(timezone.utc).isoformat()
         listings: list[dict] = []
 
         for card in cards:
             try:
-                listing = self._parse_card(card, type_name)
+                listing = self._parse_card(card, type_name, seen_at=seen_at)
                 if listing:
                     listings.append(listing)
             except Exception as e:
                 card_id = card.get("data-product-id", "unknown")
                 log.warning("krisha_card_parse_failed", card_id=card_id, error=str(e))
 
-        return listings
+        return listings, len(cards)
 
-    def _parse_card(self, card: BeautifulSoup, type_name: str) -> dict | None:
+    def _parse_card(self, card: BeautifulSoup, type_name: str, seen_at: str | None = None) -> dict | None:
         """Parse a single listing card from the search results page."""
         external_id = card.get("data-product-id")
         if not external_id:
             return None
 
         # Search pages can contain promoted cards from other cities.
-        city_el = card.select_one(".a-card__stats-item")
-        if city_el is None or city_el.get_text(strip=True).casefold() != "тараз":
+        stats = [el.get_text(strip=True) for el in card.select(".a-card__stats-item")]
+        if not stats or stats[0].casefold() != "тараз":
             return None
+        posted_on = self.parse_posted_date(stats[1]) if len(stats) > 1 else None
 
         # Title and URL
         title_el = card.select_one("a.a-card__title")
@@ -148,6 +181,11 @@ class KrishaScraper(BaseScraper):
         # Area from title (e.g., "Офисы . 550 м²")
         area_sqm = self._extract_area_from_title(title)
 
+        # Only a per-m² rate is shown: the monthly rent is rate x area (unknown without an area).
+        if price_tenge is None and price_per_sqm is not None and area_sqm:
+            price_tenge = round(price_per_sqm * area_sqm)
+        use_cases = self.parse_use_cases(title)
+
         # Photo
         photo_urls: list[str] = []
         img_el = card.select_one("img.a-image__img")
@@ -166,45 +204,88 @@ class KrishaScraper(BaseScraper):
             property_type=type_name,
             url=url,
             photo_urls=photo_urls,
-            raw_data={"city": CITY_ID, "source_city": "Тараз", "source_city_url": COMMERCIAL_RENT_URL, "title_raw": title, "address_raw": address},
+            raw_data={
+                "city": CITY_ID,
+                "source_city": "Тараз",
+                "source_city_url": COMMERCIAL_RENT_URL,
+                "title_raw": title,
+                "address_raw": address,
+                "street": self.street_from_address(address),
+                "use_cases": use_cases,
+                "posted_on": posted_on.isoformat() if posted_on else None,
+                "seen_at": seen_at or datetime.now(timezone.utc).isoformat(),
+            },
         ).model_dump()
 
+    @staticmethod
+    def parse_use_cases(title: str) -> list[str]:
+        """Our use-case tags from a card title (the part before the area)."""
+        head = re.split(r"\s[·.]\s", title, maxsplit=1)[0].lower()
+        tags: list[str] = []
+        for phrase, tag in USE_CASE_PATTERNS:
+            if phrase in head and tag not in tags:
+                tags.append(tag)
+        return tags
+
+    @staticmethod
+    def street_from_address(address: str) -> str:
+        """The street part of 'Айтеке би 75 — Проспект Жамбыла/Айтеке би' (drops the landmark note)."""
+        return re.split(r"\s[—–-]\s", address, maxsplit=1)[0].strip()
+
+    @staticmethod
+    def parse_posted_date(text: str, today: date | None = None) -> date | None:
+        """'19 окт.' / 'сегодня' / 'вчера' -> date. Krisha omits the year."""
+        today = today or datetime.now(timezone.utc).date()
+        value = text.strip().lower()
+        if value.startswith("сегодня"):
+            return today
+        if value.startswith("вчера"):
+            return today - timedelta(days=1)
+        m = re.match(r"(\d{1,2})\s+([а-я]+)", value)
+        if not m:
+            return None
+        month = next((n for key, n in _MONTHS.items() if m.group(2).startswith(key)), None)
+        if month is None:
+            return None
+        try:
+            parsed = date(today.year, month, int(m.group(1)))
+        except ValueError:
+            return None
+        # A date later than today can only belong to the previous year.
+        return parsed if parsed <= today + timedelta(days=1) else parsed.replace(year=today.year - 1)
+
     def _parse_price(self, card: BeautifulSoup) -> tuple[int | None, int | None]:
-        """Extract price and price per sqm from a listing card."""
+        """Extract (monthly price, price per m²) from a listing card.
+
+        Cards read "1 500 000 ₸ за месяц  5 000 ₸ за м²", but some show only the per-m² rate.
+        The unit decides which number is which: a per-m² rate must never be stored as the
+        monthly rent (a 400 m² unit at "1 000 ₸ за м²" is not a 1 000 ₸ rental).
+        A bare price with no unit is treated as monthly.
+        """
         price_el = card.select_one("div.a-card__price")
         if not price_el:
             return None, None
 
         price_text = price_el.get_text(" ", strip=True)
+        monthly: int | None = None
+        per_sqm: int | None = None
 
-        # Main price: digits separated by spaces/nbsp, e.g. "500 000 〒"
-        price_tenge: int | None = None
-        price_per_sqm: int | None = None
+        for number, unit in re.findall(r"([\d\s\xa0]+?)\s*[₸〒](\s*за\s*(?:месяц|м))?", price_text):
+            digits = re.sub(r"[\s\xa0]", "", number)
+            if not digits:
+                continue
+            value = int(digits)
+            if "м" in unit and "месяц" not in unit:
+                per_sqm = per_sqm if per_sqm is not None else value
+            else:
+                monthly = monthly if monthly is not None else value
 
-        # Extract all price-like numbers
-        price_matches = re.findall(r"([\d\s\xa0]+)\s*[₸〒]", price_text)
-        if price_matches:
-            # First match is the main price
-            price_str = re.sub(r"[\s\xa0]", "", price_matches[0])
-            try:
-                price_tenge = int(price_str)
-            except ValueError:
-                pass
-
-        # Price per sqm: "4 545 〒 за м²" pattern
-        per_sqm_match = re.search(r"([\d\s\xa0]+)\s*[₸〒]\s*за\s*м", price_text)
-        if per_sqm_match:
-            sqm_str = re.sub(r"[\s\xa0]", "", per_sqm_match.group(1))
-            try:
-                price_per_sqm = int(sqm_str)
-            except ValueError:
-                pass
-
-        return price_tenge, price_per_sqm
+        return monthly, per_sqm
 
     def _extract_area_from_title(self, title: str) -> float | None:
         """Extract area in sqm from title like 'Офисы . 550 м²'."""
-        match = re.search(r"([\d.,]+)\s*м[²2]?", title)
+        # Digits are required: ", магазины" in a use-case list used to match as an "area".
+        match = re.search(r"(\d+(?:[.,]\d+)?)\s*м[²2]", title)
         if match:
             try:
                 return float(match.group(1).replace(",", "."))

@@ -34,6 +34,16 @@ SYSTEM_PROMPT = """\
 Не выдумывай границы районов, среднюю аренду, трафик или ориентиры.
 Используй только подтверждённые адреса и данные найденных объявлений.
 
+## Размер помещения
+
+Площади в правилах ниже — ориентир для типичного небольшого заведения. Если в описании есть \
+масштаб (число посадочных мест, сотрудников, формат «большой/небольшой», кухня, склад, веранда), \
+ПЕРЕСЧИТАЙ диапазон min_area_sqm–max_area_sqm под него и не копируй значения из правил:
+- Кафе/ресторан: примерно 4–6 м² на посадочное место вместе с кухней и подсобными помещениями.
+- Офис: примерно 6–10 м² на сотрудника.
+- Диапазон должен быть узким: максимум примерно в 2 раза больше минимума.
+Если пользователь указал минимальную площадь, min_area_sqm не должен быть меньше неё.
+
 ## Правила по типам бизнеса
 
 **Кафе/Ресторан (cafe):**
@@ -356,7 +366,7 @@ async def planner_node(state: PipelineState) -> dict:
 
     Takes business type, name, description, district, budget, area, and competitor
     tolerance — produces a comprehensive SearchQuery JSON that drives the entire
-    downstream pipeline (fetcher, enrichment, scoring, validation, explanation).
+    downstream pipeline (searcher, enrichment, scoring, validation, explanation).
     """
     try:
         await update_pipeline_step(state["search_id"], "planning")

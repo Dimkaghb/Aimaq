@@ -4,6 +4,20 @@ import structlog
 
 log = structlog.get_logger()
 
+# Number of ranked locations returned to the user.
+RESULT_LIMIT = 60
+
+# "Free use" space is not meant for this business specifically; it ranks a little below an
+# otherwise identical listing that names the business's use.
+GENERIC_FIT_PENALTY = 5.0
+
+# OpenStreetMap has far fewer places than 2GIS, so "none found" there is weak evidence. A signal
+# that came from OSM counts for this share; the rest is pulled toward the neutral score.
+OSM_CONFIDENCE = 0.5
+
+# Sub-score used when a signal could not be measured. Unknown is neutral, never "excellent".
+NEUTRAL_SCORE = 50.0
+
 # Weight matrix — hardcoded per business type
 WEIGHTS: dict[str, dict[str, float]] = {
     "fastfood": {"footfall": 0.40, "competitor": 0.25, "transit": 0.10, "price": 0.20, "area": 0.05},
@@ -61,8 +75,13 @@ def is_on_transit_corridor(address: str) -> bool:
     return any(corridor in addr_lower for corridor in TRANSIT_CORRIDORS)
 
 
+def _toward_neutral(score: float) -> float:
+    """Weaken a score from thin data: keep OSM_CONFIDENCE of it, replace the rest with neutral."""
+    return score * OSM_CONFIDENCE + NEUTRAL_SCORE * (1 - OSM_CONFIDENCE)
+
+
 def compute_transit_score(
-    bus_stop_count: int,
+    bus_stop_count: int | None,
     metro_distance_m: float | None,
     address: str = "",
 ) -> float:
@@ -72,6 +91,8 @@ def compute_transit_score(
     - Optional metro/corridor bonuses apply only where configured (none in Taraz)
     - Capped at 100
     """
+    if bus_stop_count is None:
+        return NEUTRAL_SCORE
     capped_stops = min(bus_stop_count, 10)
     score = (capped_stops / 10) * 100
 
@@ -84,8 +105,13 @@ def compute_transit_score(
     return min(score, 100.0)
 
 
-def compute_competitor_score(competitor_count: int, tolerance: int = 5) -> float:
-    """Inverted sigmoid: 0 competitors → 100, tolerance → 50, 2×tolerance → ~0."""
+def compute_competitor_score(competitor_count: int | None, tolerance: int = 5) -> float:
+    """Inverted sigmoid: 0 competitors → 100, tolerance → 50, 2×tolerance → ~0.
+
+    An unmeasured count scores neutral; it must not read as "no competitors".
+    """
+    if competitor_count is None:
+        return NEUTRAL_SCORE
     if tolerance <= 0:
         tolerance = 1
     # Sigmoid centered at tolerance, steepness = 4/tolerance
@@ -132,17 +158,19 @@ def compute_area_score(area_sqm: float | None, business_type: str) -> float:
 
 def normalize_footfall_batch(listings: list[dict]) -> list[dict]:
     """Min-max normalize footfall scores across a batch of listings."""
-    scores = [l.get("footfall_raw", 0) for l in listings]
-    min_s = min(scores) if scores else 0
-    max_s = max(scores) if scores else 0
+    known = [l["footfall_raw"] for l in listings if l.get("footfall_raw") is not None]
+    min_s = min(known) if known else 0
+    max_s = max(known) if known else 0
     spread = max_s - min_s
 
     for listing in listings:
-        raw = listing.get("footfall_raw", 0)
-        if spread > 0:
+        raw = listing.get("footfall_raw")
+        if raw is None:
+            listing["footfall_score"] = NEUTRAL_SCORE  # not measured
+        elif spread > 0:
             listing["footfall_score"] = ((raw - min_s) / spread) * 100
         else:
-            listing["footfall_score"] = 50.0  # all same → neutral
+            listing["footfall_score"] = NEUTRAL_SCORE  # all same → neutral
 
     return listings
 
@@ -178,12 +206,13 @@ def score_listings(
     budget_tenge: int | None = None,
     competitor_tolerance: int = 5,
     weights_override: dict | None = None,
-    top_n: int = 5,
+    top_n: int | None = RESULT_LIMIT,
 ) -> list[dict]:
     """Score and rank a batch of enriched listings for a given business type.
 
     Takes joined listing+enrichment data, computes all sub-scores,
-    normalizes footfall across the batch, and returns top_n ranked results.
+    normalizes footfall across the batch, and returns the top_n ranked results
+    (all of them when top_n is None).
 
     Each input dict should have listing fields (price_tenge, area_sqm, district, address)
     plus enrichment fields (footfall_raw, competitor_count, bus_stops_nearby, metro_distance_m).
@@ -194,16 +223,20 @@ def score_listings(
     # 1. Compute individual sub-scores for each listing
     for item in listings_with_enrichment:
         item["competitor_score"] = compute_competitor_score(
-            item.get("competitor_count", 0),
+            item.get("competitor_count"),
             tolerance=competitor_tolerance,
         )
         item["transit_score"] = compute_transit_score(
-            item.get("bus_stops_nearby", 0),
+            item.get("bus_stops_nearby"),
             item.get("metro_distance_m"),
             item.get("address", ""),
         )
+        if item.get("competitor_source") == "osm":
+            item["competitor_score"] = _toward_neutral(item["competitor_score"])
+        if item.get("transit_source") == "osm":
+            item["transit_score"] = _toward_neutral(item["transit_score"])
         item["price_score"] = compute_price_score(
-            item.get("price_tenge"),
+            None if item.get("price_suspect") else item.get("price_tenge"),  # a junk price is not a bargain
             budget_tenge,
             item.get("district"),
         )
@@ -219,6 +252,8 @@ def score_listings(
     scored: list[dict] = []
     for item in listings_with_enrichment:
         result = compute_total_score(item, business_type, weights_override)
+        if item.get("use_case_fit") == "generic":
+            result["total_score"] = round(max(0.0, result["total_score"] - GENERIC_FIT_PENALTY), 2)
         scored.append({
             "listing_id": item.get("id") or item.get("listing_id"),
             "title": item.get("title", ""),
@@ -232,10 +267,13 @@ def score_listings(
             "total_score": result["total_score"],
             "score_breakdown": result["score_breakdown"],
             "weights_used": result["weights_used"],
-            "competitor_count": item.get("competitor_count", 0),
-            "bus_stops_nearby": item.get("bus_stops_nearby", 0),
+            "competitor_count": item.get("competitor_count"),
+            "bus_stops_nearby": item.get("bus_stops_nearby"),
             "metro_distance_m": item.get("metro_distance_m"),
             "nearest_metro_name": item.get("nearest_metro_name"),
+            "use_case_fit": item.get("use_case_fit"),
+            "footfall_measured": item.get("footfall_raw") is not None,
+            "price_suspect": bool(item.get("price_suspect")),
         })
 
     # 4. Sort by total_score descending

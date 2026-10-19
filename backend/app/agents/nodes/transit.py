@@ -2,18 +2,23 @@ import time
 
 import structlog
 
+from app.agents.nodes._geo import OSM_NOTE, coord_key, fill_from_osm, lookup_by_location
+from app.integrations.osm_city import count_within
 from app.agents.state import PipelineState
 from app.db.queries import update_pipeline_step
-from app.services.scoring import nearest_metro_distance
 
 log = structlog.get_logger()
 
+CONCURRENCY = 10
+STOP_RADIUS_M = 300
+CACHE_TTL = 7 * 24 * 3600  # stops rarely move
+
 
 async def transit_node(state: PipelineState) -> dict:
-    """Count bus stops and compute metro proximity for each listing.
+    """Count public-transport stops within walking distance of each listing (2GIS).
 
-    Uses a single batched Overpass query instead of per-listing requests.
-    Taraz has no metro; compatibility fields remain null.
+    bus_stops_nearby is None when it could not be measured; unknown is not zero.
+    Taraz has no metro, so the metro fields stay null for API compatibility.
     """
     try:
         await update_pipeline_step(state["search_id"], "enriching")
@@ -21,66 +26,47 @@ async def transit_node(state: PipelineState) -> dict:
         pass
     t0 = time.monotonic()
     errors: list[str] = []
-    results: list[dict] = []
 
-    from app.integrations.osm import OSMClient
-    from app.services.scoring import METRO_STATIONS, haversine_distance
+    from app.integrations.gis2 import TwoGISClient
 
-    # Collect valid coordinates for batch query
-    listings_with_coords: list[tuple[dict, float, float]] = []
-    for listing in state["raw_listings"]:
-        lat = listing.get("lat")
-        lng = listing.get("lng")
-        if lat is not None and lng is not None:
-            listings_with_coords.append((listing, lat, lng))
-        else:
-            results.append({
-                "listing_id": listing.get("id"),
-                "bus_stops_nearby": 0,
-                "metro_distance_m": None,
-                "nearest_metro_name": None,
-            })
+    listings = state["raw_listings"]
 
-    # Single batch Overpass query for all bus stops
-    bus_stop_counts: dict[tuple[float, float], int] = {}
-    if listings_with_coords:
-        coords = [(lat, lng) for _, lat, lng in listings_with_coords]
-        try:
-            async with OSMClient() as client:
-                bus_stop_counts = await client.count_bus_stops_batch(coords, radius=300)
-        except Exception as e:
-            errors.append(f"transit_node: batch bus stop query failed — {e}")
+    async with TwoGISClient() as client:
+        async def _stops(lat: float, lng: float) -> int:
+            return await client.count_transit_stops(lat, lng, STOP_RADIUS_M)
 
-    # Compute metro distance locally + assign bus stop counts
-    for listing, lat, lng in listings_with_coords:
-        listing_id = listing.get("id")
-        bus_count = bus_stop_counts.get((lat, lng), 0)
+        stops, failed = await lookup_by_location(
+            listings, _stops, CONCURRENCY, "transit",
+            cache_prefix=f"2gis:stops:{STOP_RADIUS_M}", cache_ttl=CACHE_TTL,
+        )
+        fatal = client.fatal_error
 
-        metro_dist = nearest_metro_distance(lat, lng)
-        nearest_name = None
-        if metro_dist is not None:
-            min_dist = float("inf")
-            for station in METRO_STATIONS:
-                d = haversine_distance(lat, lng, station["lat"], station["lng"])
-                if d < min_dist:
-                    min_dist = d
-                    nearest_name = station["name"]
+    measured_by_2gis = set(stops)
+    from_osm = await fill_from_osm(
+        listings, stops, lambda pois, lat, lng: count_within(pois.get("bus_stop", []), lat, lng, STOP_RADIUS_M)
+    )
+    if from_osm:
+        errors.append(OSM_NOTE)
+    elif fatal:
+        errors.append(f"transit_node: {fatal}")
 
-        results.append({
-            "listing_id": listing_id,
-            "bus_stops_nearby": bus_count,
-            "metro_distance_m": round(metro_dist, 1) if metro_dist else None,
-            "nearest_metro_name": nearest_name,
-        })
+    results = [
+        {
+            "listing_id": l.get("id"),
+            "bus_stops_nearby": stops.get(coord_key(l)),
+            "transit_source": "osm" if coord_key(l) not in measured_by_2gis and coord_key(l) in stops else "2gis",
+            "metro_distance_m": None,
+            "nearest_metro_name": None,
+        }
+        for l in listings
+    ]
+    if failed and not fatal and not from_osm:
+        errors.append(f"transit_node: {failed} lookups failed")
 
     log.debug(
         "transit_node_done",
         listings=len(results),
-        errors=len(errors),
+        unknown=sum(1 for r in results if r["bus_stops_nearby"] is None),
         duration_ms=round((time.monotonic() - t0) * 1000),
     )
-
-    return {
-        "transit_results": results,
-        "errors": errors,
-    }
+    return {"transit_results": results, "errors": errors}

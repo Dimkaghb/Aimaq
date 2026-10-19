@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import get_optional_user_id
 from app.city import CITY_ID
+from app.services.listing_text import short_title
 from app.models.listing import (
     ScoredListingResponse,
     SearchRequest,
@@ -72,6 +73,8 @@ async def create_search(
         "competitor_results": [],
         "transit_results": [],
         # Scoring output
+        "available_count": 0,
+        "evaluated_count": 0,
         "scored_listings": [],
         "top_listings": [],
         # Validator output
@@ -133,7 +136,7 @@ async def get_search_status(session_id: str) -> SearchSessionStatus:
             results.append({
                 "listing_id": row.get("listing_id", ""),
                 "rank": row.get("rank", 0),
-                "title": listing.get("title", ""),
+                "title": short_title(listing.get("title", "")),
                 "address": listing.get("address", ""),
                 "district": listing.get("district"),
                 "price_tenge": listing.get("price_tenge"),
@@ -195,7 +198,7 @@ async def get_listing_detail(session_id: str, listing_id: str) -> ScoredListingR
     return ScoredListingResponse(
         listing_id=row.get("listing_id", ""),
         rank=row.get("rank", 0),
-        title=listing.get("title", ""),
+        title=short_title(listing.get("title", "")),
         address=listing.get("address", ""),
         district=listing.get("district"),
         price_tenge=listing.get("price_tenge"),

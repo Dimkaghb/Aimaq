@@ -165,16 +165,11 @@ async def test_created_search_and_queue_share_city(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_taraz_refresh_keeps_cached_coordinates():
-    from app.agents.nodes.searcher import _deduplicate
     from app.db.queries import _current_city_upsert_rows
     cached = {'id': 'uuid', 'source': 'krisha', 'external_id': 'current',
               'raw_data': {'city': 'taraz'}, 'lat': 42.9, 'lng': 71.3667,
               'price_tenge': 200000}
     fresh = {**cached, 'id': None, 'lat': None, 'lng': None, 'price_tenge': 150000}
-    merged = _deduplicate([dict(fresh), cached])[0]
-    assert merged['price_tenge'] == 150000
-    assert merged['lat'] == 42.9
-    assert merged['id'] == 'uuid'
     query = Query([cached])
     rows = await _current_city_upsert_rows(SimpleNamespace(table=lambda _: query), [fresh])
     assert rows[0]['price_tenge'] == 150000
@@ -182,17 +177,23 @@ async def test_taraz_refresh_keeps_cached_coordinates():
 
 
 @pytest.mark.asyncio
-async def test_scraper_stops_on_source_access_denial(monkeypatch):
+async def test_scraper_backs_off_on_source_access_denial_without_giving_up(monkeypatch):
     import httpx
     from app.scrapers import base
-    client = SimpleNamespace(get=AsyncMock(return_value=httpx.Response(468)))
-    context = AsyncMock()
-    context.__aenter__.return_value = client
-    monkeypatch.setattr(base.httpx, 'AsyncClient', lambda **kwargs: context)
-    monkeypatch.setattr(base.asyncio, 'sleep', AsyncMock())
+    responses = [httpx.Response(468)] * len(base.BaseScraper.BLOCK_BACKOFF) + [httpx.Response(468)]
+    client = SimpleNamespace(get=AsyncMock(side_effect=responses))
+    sleeps = AsyncMock()
+    monkeypatch.setattr(base.asyncio, 'sleep', sleeps)
     scraper = KrishaScraper()
-    with pytest.raises(RuntimeError, match='Source denied'):
+    scraper._client = client
+    scraper.MIN_DELAY = scraper.JITTER = 0
+    with pytest.raises(base.ScraperBlocked, match='Source denied'):
         await scraper.get(COMMERCIAL_RENT_URL)
-    with pytest.raises(RuntimeError, match='disabled'):
-        await scraper.get(COMMERCIAL_RENT_URL)
-    assert client.get.await_count == 1
+    # Every block was answered with an increasing pause, then one final refusal.
+    assert client.get.await_count == len(base.BaseScraper.BLOCK_BACKOFF) + 1
+    assert [c.args[0] for c in sleeps.await_args_list if c.args[0] > 0] == list(base.BaseScraper.BLOCK_BACKOFF)
+
+    # The scraper is not switched off: once the source recovers, the next request works.
+    request = httpx.Request('GET', COMMERCIAL_RENT_URL)
+    client.get = AsyncMock(return_value=httpx.Response(200, request=request, text='ok'))
+    assert (await scraper.get(COMMERCIAL_RENT_URL)).text == 'ok'

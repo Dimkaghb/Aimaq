@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import structlog
@@ -10,22 +11,24 @@ from app.services.llm import call_gemini_with_tools
 log = structlog.get_logger()
 
 SYSTEM_PROMPT = """\
-Ты — строгий эксперт по коммерческой недвижимости в Таразе. \
-Твоя задача: проверить, действительно ли каждое помещение подходит для указанного бизнеса.
+Ты — эксперт по коммерческой недвижимости в Таразе. \
+Твоя задача: проверить, подходит ли каждое помещение для указанного бизнеса.
 
 Ты получишь:
 1. Тип бизнеса и его описание
-2. Правила валидации от планировщика
+2. Желаемые параметры и правила валидации от планировщика
 3. Список помещений с описаниями и баллами
 
 Для каждого помещения вынеси решение: keep (оставить) или reject (отклонить).
 
 Правила:
-- hard_reject правила → если нарушено → decision: "reject"
-- soft_penalize правила → если нарушено → decision: "keep" с отрицательным score_adjustment (-10 до -25)
-- Если помещение очевидно не подходит по здравому смыслу (офис на 4 этаже для кафе) → reject
-- Будь строгим: лучше отклонить сомнительное, чем показать неподходящее
-- В reason объясняй кратко и по делу
+- reject — ТОЛЬКО если помещение принципиально не подходит: другое назначение (склад, производство, \
+  сельское хозяйство для кафе и т.п.) или нарушено правило hard_reject.
+- Площадь, цена, этаж и район — НЕ причины для reject. Если они далеки от желаемого — \
+  keep с отрицательным score_adjustment от -5 (немного не дотягивает) до -25 (сильно не подходит).
+- Правила soft_penalize → keep с отрицательным score_adjustment (-10 до -25).
+- Если данных мало или поле «не указана» — keep без штрафа.
+- В reason объясняй кратко и по делу.
 """
 
 VALIDATE_TOOL = types.Tool(
@@ -69,6 +72,12 @@ VALIDATE_TOOL = types.Tool(
 
 # Max listings to send to Gemini per validation batch
 _BATCH_SIZE = 15
+_BATCH_CONCURRENCY = 3
+
+# The validator may drop clearly unsuitable listings, but the user always gets at least this
+# many; any shortfall is filled with the best rejected ones at a penalty.
+MIN_RESULTS = 20
+REJECTED_TOPUP_PENALTY = 15.0
 
 
 def _format_listings_for_validation(listings: list[dict]) -> str:
@@ -81,8 +90,8 @@ def _format_listings_for_validation(listings: list[dict]) -> str:
             f"  Адрес: {lst.get('address', 'Не указан')}\n"
             f"  Тип помещения: {lst.get('property_type') or 'Не указан'}\n"
             f"  Общий балл: {lst.get('total_score', 0)}/100\n"
-            f"  Цена: {lst.get('price_tenge', 'Не указана')} ₸/мес\n"
-            f"  Площадь: {lst.get('area_sqm', 'Не указана')} м²"
+            f"  Цена: {lst.get('price_tenge') or 'не указана'} ₸/мес\n"
+            f"  Площадь: {lst.get('area_sqm') or 'не указана'} м²"
         )
     return "\n\n".join(lines)
 
@@ -112,6 +121,7 @@ def _apply_validation_results(
     }
 
     validated: list[dict] = []
+    rejected: list[dict] = []
     validation_results: list[dict] = []
 
     for lst in scored_listings:
@@ -141,6 +151,7 @@ def _apply_validation_results(
 
         if d_result == "reject":
             log.debug("validator_rejected", listing_id=lid, reason=reason)
+            rejected.append(lst)
             continue
 
         if adjustment != 0:
@@ -149,6 +160,16 @@ def _apply_validation_results(
             log.debug("validator_penalized", listing_id=lid, adjustment=adjustment)
 
         validated.append(lst)
+
+    # Never leave the user with (almost) nothing because the judge was picky: top up with the
+    # best-scoring rejected listings, clearly penalised.
+    if len(validated) < MIN_RESULTS and rejected:
+        rejected.sort(key=lambda x: x.get("total_score", 0), reverse=True)
+        for lst in rejected[: MIN_RESULTS - len(validated)]:
+            lst = dict(lst)
+            lst["total_score"] = max(0.0, lst.get("total_score", 0) - REJECTED_TOPUP_PENALTY)
+            validated.append(lst)
+        log.info("validator_topped_up", kept_by_validator=len(validated) - min(len(rejected), MIN_RESULTS), minimum=MIN_RESULTS)
 
     # Re-rank after adjustments
     validated.sort(key=lambda x: x.get("total_score", 0), reverse=True)
@@ -191,38 +212,38 @@ async def validator_node(state: PipelineState) -> dict:
         business_context = f"{business_type} ({bp['concept']})"
 
     rules_text = _format_rules(validation_rules)
+    lr = search_query.get("location_requirements", {})
+    wanted_text = ""
+    if lr.get("min_area_sqm") and lr.get("max_area_sqm"):
+        wanted_text += f"Желаемая площадь: {lr['min_area_sqm']}–{lr['max_area_sqm']} м²\n"
+    if state.get("budget_tenge"):
+        wanted_text += f"Бюджет: {state['budget_tenge']} ₸/мес\n"
 
     all_decisions: list[dict] = []
 
     try:
-        # Validate in batches to handle many listings
-        for i in range(0, len(scored_listings), _BATCH_SIZE):
-            batch = scored_listings[i : i + _BATCH_SIZE]
+        # Validate in batches, a few at a time: up to RESULT_LIMIT listings means several LLM calls.
+        sem = asyncio.Semaphore(_BATCH_CONCURRENCY)
 
-            listings_text = _format_listings_for_validation(batch)
-
+        async def _validate_batch(batch: list[dict]) -> list[dict]:
             user_message = (
-                f"Тип бизнеса: {business_context}\n\n"
+                f"Тип бизнеса: {business_context}\n"
+                f"{wanted_text}\n"
                 f"Правила валидации:\n{rules_text}\n\n"
-                f"Помещения для проверки:\n\n{listings_text}\n\n"
+                f"Помещения для проверки:\n\n{_format_listings_for_validation(batch)}\n\n"
                 "Вызови функцию validate_listings с решением для каждого помещения."
             )
+            async with sem:
+                result = await call_gemini_with_tools(
+                    system=SYSTEM_PROMPT,
+                    user_message=user_message,
+                    tools=[VALIDATE_TOOL],
+                )
+            return result.get("arguments", {}).get("decisions", [])
 
-            result = await call_gemini_with_tools(
-                system=SYSTEM_PROMPT,
-                user_message=user_message,
-                tools=[VALIDATE_TOOL],
-            )
-
-            decisions: list[dict] = result.get("arguments", {}).get("decisions", [])
+        batches = [scored_listings[i : i + _BATCH_SIZE] for i in range(0, len(scored_listings), _BATCH_SIZE)]
+        for decisions in await asyncio.gather(*[_validate_batch(b) for b in batches]):
             all_decisions.extend(decisions)
-
-            log.debug(
-                "validator_batch_done",
-                batch_start=i,
-                batch_size=len(batch),
-                decisions=len(decisions),
-            )
 
         validated, validation_results = _apply_validation_results(scored_listings, all_decisions)
 

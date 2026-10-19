@@ -1,10 +1,10 @@
-"""Manual scraper runner — use to populate initial data.
+"""Manual crawl: the same job the scheduler runs (crawl every Krisha feed, store, geocode,
+assign districts, warm the search cache).
 
 Usage: python -m scripts.run_scraper
 """
 
 import asyncio
-import sys
 
 import structlog
 
@@ -19,31 +19,11 @@ log = structlog.get_logger()
 
 
 async def main() -> None:
-    from app.db.queries import get_listings_count, upsert_listings_batch
-    from app.models.listing import ListingUpsert
-    from app.scrapers.krisha import KrishaScraper
+    from app.db.queries import get_listings_count
+    from app.tasks.scraping import _run_krisha_scrape
 
-    scraper = KrishaScraper()
-    log.info("starting_manual_scrape")
-
-    raw_listings = await scraper.fetch_commercial_listings()
-    log.info("raw_listings_fetched", count=len(raw_listings))
-
-    valid_listings: list[ListingUpsert] = []
-    for raw in raw_listings:
-        try:
-            valid_listings.append(ListingUpsert(**raw))
-        except Exception as e:
-            log.warning("validation_failed", error=str(e))
-
-    log.info("valid_listings", count=len(valid_listings))
-
-    if valid_listings:
-        count = await upsert_listings_batch(valid_listings)
-        log.info("upserted_to_db", count=count)
-
-    total = await get_listings_count()
-    log.info("total_listings_in_db", count=total)
+    stored = await _run_krisha_scrape()
+    log.info("manual_scrape_done", stored=stored, total_in_db=await get_listings_count())
 
 
 if __name__ == "__main__":

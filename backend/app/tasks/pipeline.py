@@ -65,8 +65,8 @@ async def _run_pipeline(search_id: str, initial_state: dict) -> None:
             .update({
                 "status": "complete",
                 "explanation": explanation,
-                "total_evaluated": len(scored_listings),
-                "error_message": "; ".join(errors) if errors else None,
+                "total_evaluated": result.get("evaluated_count") or len(scored_listings),
+                "error_message": "; ".join(dict.fromkeys(errors)) if errors else None,
             })
             .eq("id", search_id)
             .eq("status_meta->>city", CITY_ID)

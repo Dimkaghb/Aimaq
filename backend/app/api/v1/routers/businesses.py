@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.api.deps import get_current_user_id
 from app.city import CITY_ID
+from app.services.listing_text import short_title
 
 log = structlog.get_logger()
 
@@ -217,7 +218,7 @@ async def get_business(
         listings.append({
             "listing_id": row["listing_id"],
             "rank": row.get("rank", 0),
-            "title": listing.get("title", ""),
+            "title": short_title(listing.get("title", "")),
             "address": listing.get("address", ""),
             "district": listing.get("district"),
             "lat": listing.get("lat"),

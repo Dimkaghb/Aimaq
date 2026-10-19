@@ -74,6 +74,61 @@ async def upsert_listings_batch(listings: list[ListingUpsert]) -> int:
     return count
 
 
+async def upsert_listings_returning(listings: list[ListingUpsert], chunk: int = 200) -> list[dict]:
+    """Upsert listings and return the stored rows (including their database ids)."""
+    db = await get_db()
+    seen: dict[tuple[str, str], dict] = {(l.source, l.external_id): l.model_dump() for l in listings}
+    rows = await _current_city_upsert_rows(db, list(seen.values()))
+    stored: list[dict] = []
+    for start in range(0, len(rows), chunk):
+        batch = rows[start:start + chunk]
+        try:
+            result = await db.table("listings").upsert(batch, on_conflict="external_id,source").execute()
+            stored.extend(result.data or [])
+        except Exception as e:
+            # One bad row must not lose the whole batch: retry row by row and skip the culprit.
+            log.warning("listings_batch_upsert_failed", error=str(e), rows=len(batch))
+            for row in batch:
+                try:
+                    result = await db.table("listings").upsert(row, on_conflict="external_id,source").execute()
+                    stored.extend(result.data or [])
+                except Exception as row_error:
+                    log.error("listing_upsert_skipped", external_id=row.get("external_id"), error=str(row_error))
+    log.info("listings_upserted", count=len(stored), submitted=len(listings))
+    return stored
+
+
+async def get_cached_geo(source: str, external_ids: list[str], chunk: int = 100) -> dict[str, dict]:
+    """Previously stored id / coordinates / district / description per external_id."""
+    db = await get_db()
+    found: dict[str, dict] = {}
+    for start in range(0, len(external_ids), chunk):
+        result = await (
+            db.table("listings")
+            .select("id, external_id, lat, lng, district, description")
+            .eq("source", source)
+            .eq("raw_data->>city", CITY_ID)
+            .in_("external_id", external_ids[start:start + chunk])
+            .execute()
+        )
+        found.update({row["external_id"]: row for row in result.data or []})
+    return found
+
+
+async def get_recent_listings(since_iso: str, limit: int = 1000) -> list[dict]:
+    """Current-city listings whose last crawl sighting is at or after `since_iso`."""
+    db = await get_db()
+    result = await (
+        db.table("listings")
+        .select("*")
+        .eq("raw_data->>city", CITY_ID)
+        .gte("raw_data->>seen_at", since_iso)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+
+
 async def get_all_listings(limit: int = 1000) -> list[dict]:
     """Fetch all listings from the DB."""
     db = await get_db()

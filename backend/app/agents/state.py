@@ -28,8 +28,9 @@ class PipelineState(TypedDict):
     search_query: dict | None          # SearchQuery from planner node
     planner_reasoning: str             # Human-readable reasoning about intent
 
-    # --- Fetcher output ---
+    # --- Searcher output ---
     raw_listings: list[dict]
+    available_count: int   # current Krisha listings considered before relevance filtering
 
     # --- Enrichment outputs (separate keys to avoid parallel overwrite) ---
     footfall_results: list[dict]     # [{listing_id, footfall_raw}, ...]
@@ -37,6 +38,7 @@ class PipelineState(TypedDict):
     transit_results: list[dict]      # [{listing_id, bus_stops_nearby, metro_distance_m, ...}, ...]
 
     # --- Scoring output ---
+    evaluated_count: int   # candidates that were enriched and scored
     scored_listings: list[dict]
     top_listings: list[dict]
 

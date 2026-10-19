@@ -17,31 +17,43 @@ SYSTEM_PROMPT = (
     "Формат: для каждой локации — 2-3 предложения с ключевыми аргументами. "
     "Цены указывай в тенге с символом ₸. "
     "Упоминай только улицы, районы и ориентиры Тараза, подтверждённые входными данными. Не выдумывай метро, трафик или цены. "
+    "Если показатель помечен «нет данных», не делай по нему выводов: прямо скажи, что он не оценён. "
     "Объясняй в бизнес-терминах: проходимость = потенциальные клиенты, "
     "близость остановок = удобство для сотрудников, мало конкурентов = свободная ниша."
 )
 
 
+def _measured(value: object, text: str) -> str:
+    """`text` when the signal was measured, otherwise an explicit "no data" marker."""
+    return text if value is not None else "нет данных (не удалось оценить)"
+
+
 def _format_listings_for_prompt(listings: list[dict], business_type: str) -> str:
-    """Format scored listings into a readable prompt for the LLM."""
+    """Format scored listings into a readable prompt for the LLM.
+
+    Signals that could not be measured are marked "нет данных" so they are never presented
+    as measurements; the neutral placeholder score behind them is not shown.
+    """
     lines: list[str] = []
     for i, l in enumerate(listings, 1):
         breakdown = l.get("score_breakdown", {})
+        competitors = l.get("competitor_count")
+        stops = l.get("bus_stops_nearby")
+        price_note = " (подозрительно низкая, вероятно неточная — не считать выгодной)" if l.get("price_suspect") else ""
+        footfall = f"{breakdown.get('footfall', 0)}/100" if l.get("footfall_measured") else None
+        competitors_text = f"{competitors} (балл: {breakdown.get('competitor', 0)}/100)" if competitors is not None else None
         lines.append(
             f"{i}. {l.get('title', 'Без названия')}\n"
             f"   Адрес: {l.get('address', 'Не указан')}\n"
-            f"   Район: {l.get('district', 'Не указан')}\n"
-            f"   Цена: {l.get('price_tenge', 'Не указана')} ₸/мес\n"
-            f"   Площадь: {l.get('area_sqm', 'Не указана')} м²\n"
+            f"   Район: {l.get('district') or 'Не указан'}\n"
+            f"   Цена: {l.get('price_tenge') or 'Не указана'} ₸/мес{price_note}\n"
+            f"   Площадь: {l.get('area_sqm') or 'Не указана'} м²\n"
             f"   Общий балл: {l.get('total_score', 0)}/100\n"
-            f"   Трафик: {breakdown.get('footfall', 0)}/100\n"
-            f"   Конкуренты рядом: {l.get('competitor_count', 0)} "
-            f"(балл: {breakdown.get('competitor', 0)}/100)\n"
-            f"   Транспорт: {breakdown.get('transit', 0)}/100 "
-            f"(остановок: {l.get('bus_stops_nearby', 0)}, "
-            f"метро: {l.get('metro_distance_m', 'далеко')} м — {l.get('nearest_metro_name', '')})\n"
+            f"   Трафик: {_measured(footfall, footfall)}\n"
+            f"   Конкуренты рядом: {_measured(competitors_text, competitors_text)}\n"
+            f"   Остановки транспорта рядом: {_measured(stops, str(stops))}\n"
             f"   Цена/бюджет: {breakdown.get('price', 0)}/100\n"
-            f"   Площадь: {breakdown.get('area', 0)}/100"
+            f"   Площадь (соответствие): {breakdown.get('area', 0)}/100"
         )
     return "\n\n".join(lines)
 

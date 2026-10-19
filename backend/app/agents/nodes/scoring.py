@@ -4,7 +4,7 @@ import structlog
 
 from app.agents.state import PipelineState
 from app.db.queries import update_pipeline_step
-from app.services.scoring import score_listings
+from app.services.scoring import RESULT_LIMIT, score_listings
 
 log = structlog.get_logger()
 
@@ -34,9 +34,12 @@ def _merge_enrichments(state: PipelineState) -> list[dict]:
 
         merged.append({
             **listing,
-            "footfall_raw": ff.get("footfall_raw", 50),
-            "competitor_count": comp.get("competitor_count", 0),
-            "bus_stops_nearby": tr.get("bus_stops_nearby", 0),
+            # None = not measured; scoring treats it as neutral, not as zero.
+            "footfall_raw": ff.get("footfall_raw"),
+            "competitor_count": comp.get("competitor_count"),
+            "competitor_source": comp.get("competitor_source"),
+            "bus_stops_nearby": tr.get("bus_stops_nearby"),
+            "transit_source": tr.get("transit_source"),
             "metro_distance_m": tr.get("metro_distance_m"),
             "nearest_metro_name": tr.get("nearest_metro_name"),
         })
@@ -47,7 +50,7 @@ def _merge_enrichments(state: PipelineState) -> list[dict]:
 async def scoring_node(state: PipelineState) -> dict:
     """Merge enrichment results and compute weighted scores.
 
-    Returns ALL scored listings (not just top 5).
+    Returns the best RESULT_LIMIT scored listings.
     Filters out listings below the quality threshold.
     """
     try:
@@ -78,6 +81,7 @@ async def scoring_node(state: PipelineState) -> dict:
             budget_tenge=state.get("budget_tenge"),
             competitor_tolerance=competitor_tolerance,
             weights_override=weights_override,
+            top_n=RESULT_LIMIT,
         )
 
         # Filter out low-quality results
@@ -106,5 +110,6 @@ async def scoring_node(state: PipelineState) -> dict:
 
     return {
         "scored_listings": scored,
+        "evaluated_count": len(state.get("raw_listings", [])),
         "errors": errors,
     }

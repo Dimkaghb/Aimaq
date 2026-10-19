@@ -30,6 +30,10 @@ class Listing(BaseModel):
     model_config = {"str_strip_whitespace": True}
 
 
+# Monthly rent / per-m² rate above this cannot be real (and would overflow INTEGER).
+MAX_PLAUSIBLE_PRICE = 100_000_000
+
+
 class ListingUpsert(BaseModel):
     """Data shape for upserting a listing into Supabase."""
 
@@ -50,6 +54,13 @@ class ListingUpsert(BaseModel):
     raw_data: dict = {}
 
     model_config = {"str_strip_whitespace": True}
+
+    @field_validator("price_tenge", "price_per_sqm")
+    @classmethod
+    def implausible_price_is_unknown(cls, value):
+        """A price above this is a typo or a unit mix-up (one ad listed 3 750 000 000 ₸), and
+        would overflow the database's integer column. Unknown beats nonsense."""
+        return value if value is None or value <= MAX_PLAUSIBLE_PRICE else None
 
     @model_validator(mode="after")
     def validate_city(self):
@@ -110,8 +121,8 @@ class ScoredListingResponse(BaseModel):
     lng: float | None = None
     total_score: float
     score_breakdown: ScoreBreakdown
-    competitor_count: int
-    bus_stops_nearby: int
+    competitor_count: int | None = None  # None = could not be measured
+    bus_stops_nearby: int | None = None
     metro_distance_m: float | None = None
     nearest_metro_name: str | None = None
 

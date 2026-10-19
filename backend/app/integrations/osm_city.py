@@ -26,7 +26,7 @@ OVERPASS_MIRRORS = [
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
 USER_AGENT = "aimaq-location-search/0.1"
-CACHE_KEY = "osm:city-pois:v1"
+CACHE_KEY = "osm:city-pois:v2"
 CACHE_TTL = 7 * 24 * 3600
 
 Points = list[list[float]]  # [[lat, lng], ...]
@@ -39,6 +39,9 @@ COMPETITOR_CATEGORY = {
 
 _FOOD = {"cafe", "restaurant", "fast_food", "food_court"}
 _ANCHOR_AMENITIES = {"school", "university", "college", "kindergarten", "hospital", "clinic", "marketplace"}
+# The biggest crowd-pullers; the footfall heatmap weights these higher.
+_MAJOR_AMENITIES = {"university", "hospital", "marketplace"}
+_MAJOR_SHOPS = {"mall", "department_store", "supermarket"}
 
 
 def _query() -> str:
@@ -72,6 +75,8 @@ def categories_of(tags: dict) -> list[str]:
     is_office = "office" in tags or tags.get("building") == "office"
     if is_office:
         found.append("offices")
+    if amenity in _MAJOR_AMENITIES or tags.get("shop") in _MAJOR_SHOPS:
+        found.append("anchors_major")
     # Places that draw people on foot: used for the footfall estimate.
     if amenity in _ANCHOR_AMENITIES or tags.get("leisure") == "park" or tags.get("shop") in {"mall", "department_store"} or is_office:
         found.append("anchors")

@@ -126,20 +126,11 @@ async def test_old_queued_search_is_not_run(monkeypatch):
     run.assert_not_called()
 
 
-@pytest.mark.asyncio
-async def test_heatmap_uses_taraz_bbox_and_drops_foreign_points(monkeypatch):
-    from app.api.v1.routers import heatmap
-    from app.integrations.osm import OSMClient
-    calls = []
-    async def fake_query(self, query):
-        calls.append(query)
-        return [{'lat': 42.9, 'lon': 71.3667}, {'lat': 43.238, 'lon': 76.945}]
-    monkeypatch.setattr(OSMClient, '_query', fake_query)
-    monkeypatch.setattr(heatmap, '_cache', {})
-    response = await heatmap.get_heatmap(layer='transit')
-    assert response['points'] == [{'lat': 42.9, 'lng': 71.3667, 'intensity': 0.5}]
-    assert ','.join(str(v) for v in CITY_BOUNDS) in calls[0]
-    assert 'taraz:transit:' in heatmap._cache
+def test_osm_city_query_is_scoped_to_the_taraz_bbox():
+    """Heatmaps and the enrichment fallback share this one query. Points outside the city are
+    additionally dropped in the heatmap router (see tests/test_heatmap.py)."""
+    from app.integrations import osm_city
+    assert ','.join(str(v) for v in CITY_BOUNDS) in osm_city._query()
 
 
 @pytest.mark.asyncio

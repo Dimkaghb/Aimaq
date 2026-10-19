@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 import structlog
@@ -18,7 +19,13 @@ log = structlog.get_logger()
 async def lifespan(app: FastAPI):
     """Startup: init DB client, Redis pool. Shutdown: close connections."""
     log.info("app_starting")
+    # Load the OpenStreetMap city data in the background (a one-off ~30-60 s download, cached for
+    # a week), so the first map layer a user opens does not wait on it.
+    from app.integrations.osm_city import get_city_pois
+
+    warm = asyncio.create_task(get_city_pois())
     yield
+    warm.cancel()
     log.info("app_shutting_down")
 
 

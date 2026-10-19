@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import s from "@/modules/search/search.module.css";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,8 @@ import { PipelineProgress } from "@/components/PipelineProgress";
 import { ResultsGrid } from "@/components/ResultsGrid";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { useSearchPolling } from "@/hooks/useSearchPolling";
+import { useSearchSession } from "@/hooks/useSearchSession";
+import { APP_PATH } from "@/lib/search-session";
 
 
 // ─── Loading screen ───────────────────────────────────────────────────────
@@ -62,14 +65,41 @@ function LoadingScreen({ onCancel }: { onCancel: () => void }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────
 
+// useSearchParams needs a Suspense boundary (the page is prerendered).
 export default function AppPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchApp />
+    </Suspense>
+  );
+}
+
+function SearchApp() {
   const router = useRouter();
   const appState = useLocationIQStore((s) => s.appState);
   const sessionId = useLocationIQStore((s) => s.sessionId);
   const resetSearch = useLocationIQStore((s) => s.resetSearch);
   const explanation = useLocationIQStore((s) => s.explanation);
+  const searchError = useLocationIQStore((s) => s.searchError);
 
+  useSearchSession();
   useSearchPolling();
+
+  // "Изменить запрос": back to the form with the answers kept. A pushed entry, so the browser's
+  // Back button returns to these results.
+  const editRequest = () => {
+    resetSearch();
+    router.push(APP_PATH);
+  };
+  // "Отменить": abandon the search so Back does not return to a cancelled one. If this page pushed
+  // the search's history entry, pop it (replacing would leave a duplicate /app, and Back would
+  // need two presses to leave); for a search opened from a link there is nothing to pop.
+  const cancelSearch = () => {
+    const pushedHere = useLocationIQStore.getState().searchEntryPushed;
+    resetSearch();
+    if (pushedHere) router.back();
+    else router.replace(APP_PATH);
+  };
 
   const isResults =
     appState === "results" || appState === "detail" || appState === "contact";
@@ -95,19 +125,22 @@ export default function AppPage() {
 
         {/* Idle / Form — questionnaire (no hero step) */}
         {(appState === "idle" || appState === "form") && (
-          <Questionnaire onBack={() => router.push("/dashboard")} />
+          <>
+            {searchError && <p role="alert" className={s.searchNotice}>{searchError}</p>}
+            <Questionnaire onBack={() => router.push("/dashboard")} />
+          </>
         )}
 
         {/* Loading — pipeline */}
         {appState === "loading" && (
-          <LoadingScreen onCancel={resetSearch} />
+          <LoadingScreen onCancel={cancelSearch} />
         )}
 
         {/* Results — card grid */}
         {isResults && (
           <ResultsGrid
             key={sessionId}
-            onStartOver={resetSearch}
+            onStartOver={editRequest}
             explanation={explanation}
           />
         )}

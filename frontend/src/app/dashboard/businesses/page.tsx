@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { invalidateDashboardData } from "@/hooks/useDashboardData";
 import Link from "next/link";
 import { Sidebar } from "@/modules/dashboard/components/Sidebar";
 import { TopBar } from "@/modules/dashboard/components/TopBar";
@@ -55,6 +57,7 @@ function BusinessCard({
   onDelete: (id: string) => void;
 }) {
   const [deleting, setDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   async function handleDelete(e: React.MouseEvent) {
     e.preventDefault();
@@ -63,6 +66,7 @@ function BusinessCard({
     setDeleting(true);
     try {
       await deleteSavedBusiness(biz.id);
+      void invalidateDashboardData(queryClient); // the dashboard home must not keep showing it
       onDelete(biz.id);
     } catch {
       setDeleting(false);

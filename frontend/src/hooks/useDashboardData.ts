@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import {
   fetchDashboardStats,
   fetchActivity,
@@ -42,4 +42,15 @@ export function useRecentListings() {
     staleTime: 30_000,
     retry: 2,
   });
+}
+
+/** Query keys shown on the dashboard home. */
+const DASHBOARD_KEYS = ["saved-businesses", "dashboard-stats", "dashboard-activity", "dashboard-popular", "dashboard-recent"];
+
+/**
+ * Mark everything the dashboard home shows as stale. Call after a change (e.g. a deleted saved
+ * business): otherwise the home page keeps serving its cache for 30-60 s and still lists it.
+ */
+export function invalidateDashboardData(queryClient: QueryClient): Promise<void[]> {
+  return Promise.all(DASHBOARD_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })));
 }

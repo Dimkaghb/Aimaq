@@ -55,8 +55,47 @@ interface LocationIQStore {
   heatmapLoading: boolean;
   setHeatmapLoading: (loading: boolean) => void;
 
+  // Why the last search ended without results (shown on the form); cleared when a new one starts.
+  searchError: string | null;
+  setSearchError: (message: string | null) => void;
+
+  // True when the page itself pushed this search's URL (so cancelling can pop that history entry
+  // instead of leaving a duplicate /app behind). False for a search opened from a link or refresh.
+  searchEntryPushed: boolean;
+  setSearchEntryPushed: (pushed: boolean) => void;
+
+  /** Drop the current search and its results but keep the form answers ("Изменить запрос"). */
   resetSearch: () => void;
+  /** A clean slate: no search, and the form back to its defaults. Used when /app is left. */
+  resetAll: () => void;
 }
+
+/** Form defaults: what a new search starts from. */
+export const FORM_DEFAULTS = {
+  businessType: null,
+  district: null,
+  budgetTenge: 500000,
+  areaSqmMin: 50,
+  competitorTolerance: 3,
+} as const;
+
+/** Everything that belongs to one search (not the form answers). Fresh arrays on every call. */
+const noSearch = (): Partial<LocationIQStore> => ({
+  sessionId: null,
+  listings: [],
+  activeListingId: null,
+  expandedListingId: null,
+  explanation: "",
+  contactDraft: null,
+  pipelineStatus: null,
+  appState: "idle",
+  lastSearchedParams: null,
+  searchError: null,
+  searchEntryPushed: false,
+  activeHeatmap: null,
+  heatmapPoints: [],
+  heatmapLoading: false,
+});
 
 export const useLocationIQStore = create<LocationIQStore>((set) => ({
   appState: "idle",
@@ -65,11 +104,7 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
   sessionId: null,
   setSessionId: (id) => set({ sessionId: id }),
 
-  businessType: null,
-  district: null,
-  budgetTenge: 500000,
-  areaSqmMin: 50,
-  competitorTolerance: 3,
+  ...FORM_DEFAULTS,
   setBusinessType: (t) => set({ businessType: t }),
   setDistrict: (d) => set({ district: d }),
   setBudget: (b) => set({ budgetTenge: b }),
@@ -102,18 +137,12 @@ export const useLocationIQStore = create<LocationIQStore>((set) => ({
   heatmapLoading: false,
   setHeatmapLoading: (loading) => set({ heatmapLoading: loading }),
 
-  resetSearch: () =>
-    set({
-      sessionId: null,
-      listings: [],
-      activeListingId: null,
-      expandedListingId: null,
-      explanation: "",
-      contactDraft: null,
-      pipelineStatus: null,
-      appState: "idle",
-      lastSearchedParams: null,
-      activeHeatmap: null,
-      heatmapPoints: [],
-    }),
+  searchError: null,
+  setSearchError: (message) => set({ searchError: message }),
+
+  searchEntryPushed: false,
+  setSearchEntryPushed: (pushed) => set({ searchEntryPushed: pushed }),
+
+  resetSearch: () => set(noSearch()),
+  resetAll: () => set({ ...noSearch(), ...FORM_DEFAULTS }),
 }));

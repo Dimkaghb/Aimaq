@@ -3,10 +3,12 @@
 import Image from "next/image";
 import s from "@/modules/search/search.module.css";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { BusinessType } from "@/types";
 import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { postSearch } from "@/lib/api";
+import { sessionUrl } from "@/lib/search-session";
 import { DISTRICT_MAP } from "@/types";
 import { formatNumber } from "@/lib/score-utils";
 
@@ -105,10 +107,13 @@ export function Questionnaire({ onBack }: QuestionnaireProps) {
     setArea,
     setCompetitorTolerance,
     setSessionId,
+    setSearchError,
+    setSearchEntryPushed,
     setAppState,
     setLastSearchedParams,
   } = useLocationIQStore();
 
+  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,9 +162,13 @@ export function Questionnaire({ onBack }: QuestionnaireProps) {
         area_sqm_min: areaSqmMin,
         competitor_tolerance: competitorDisabled ? 0 : competitorTolerance,
       });
+      setSearchError(null);
       setSessionId(res.session_id);
       setLastSearchedParams(params);
       setAppState("loading");
+      // The URL now names this search, so a refresh, Back/forward or a shared link finds it again.
+      setSearchEntryPushed(true);
+      router.push(sessionUrl(res.session_id));
     } catch {
       setError("Не удалось начать подбор. Проверьте соединение и попробуйте ещё раз.");
     } finally {

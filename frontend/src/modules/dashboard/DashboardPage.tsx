@@ -9,7 +9,6 @@ import { ActivityCard, DashboardStats, LocationsTable, SavedBusinessesCard } fro
 import { useDashboardStats, useActivity, usePopularListings } from "@/hooks/useDashboardData";
 import { useAuth } from "@/lib/supabase/auth-context";
 import { fetchSavedBusinesses } from "@/lib/api";
-import { useLocationIQStore } from "@/store/useLocationIQStore";
 import type { UserProfile } from "@/types/dashboard";
 import s from "./dashboard.module.css";
 
@@ -36,7 +35,6 @@ export function DashboardPage() {
   const activity = useActivity();
   const popular = usePopularListings();
   const businesses = useQuery({ queryKey: ["saved-businesses", user?.id], queryFn: fetchSavedBusinesses, enabled: !!user });
-  const resetSearch = useLocationIQStore((state) => state.resetSearch);
   const name = String(user?.user_metadata?.full_name || user?.email?.split("@")[0] || "");
   const firstName = name.trim().split(/\s+/)[0];
   const profile: UserProfile | undefined = user ? { id: user.id, name, email: user.email || "", avatar_url: user.user_metadata?.avatar_url || null } : undefined;
@@ -46,8 +44,8 @@ export function DashboardPage() {
     <main className={s.main} id="dashboard-content">
       <TopBar user={profile} isLoading={!user} />
       <div className={s.content}>
-        <div className={s.pageHeading}><div><span className={s.eyebrow}>ВАШЕ ПРОСТРАНСТВО ВОЗМОЖНОСТЕЙ</span><h1>{firstName ? `С возвращением, ${firstName}.` : "Ваши планы обретают место."}</h1><p>Всё для следующего шага вашего бизнеса — здесь.</p></div><Link href="/app" onClick={resetSearch} className={s.primaryButton}><DashboardIcon name="plus" size={18} /> Новый подбор</Link></div>
-        <section className={s.welcomeBanner} aria-labelledby="welcome-title"><div className={s.bannerCopy}><span className={s.bannerEyebrow}><span /> ОТ ИДЕИ — К АДРЕСУ</span><h2 id="welcome-title">Хорошему делу —<br />подходящее место.</h2><p>Сравним трафик, окружение и аренду.<br />Вам останется выбрать свой следующий адрес.</p><Link href="/app" onClick={resetSearch} className={s.bannerLink}>Найти мою локацию <DashboardIcon name="arrow" size={18} /></Link></div><NeighborhoodIllustration /></section>
+        <div className={s.pageHeading}><div><span className={s.eyebrow}>ВАШЕ ПРОСТРАНСТВО ВОЗМОЖНОСТЕЙ</span><h1>{firstName ? `С возвращением, ${firstName}.` : "Ваши планы обретают место."}</h1><p>Всё для следующего шага вашего бизнеса — здесь.</p></div><Link href="/app" className={s.primaryButton}><DashboardIcon name="plus" size={18} /> Новый подбор</Link></div>
+        <section className={s.welcomeBanner} aria-labelledby="welcome-title"><div className={s.bannerCopy}><span className={s.bannerEyebrow}><span /> ОТ ИДЕИ — К АДРЕСУ</span><h2 id="welcome-title">Хорошему делу —<br />подходящее место.</h2><p>Сравним трафик, окружение и аренду.<br />Вам останется выбрать свой следующий адрес.</p><Link href="/app" className={s.bannerLink}>Найти мою локацию <DashboardIcon name="arrow" size={18} /></Link></div><NeighborhoodIllustration /></section>
         <DashboardStats stats={stats.data?.stats} isLoading={stats.isLoading} isError={stats.isError} onRetry={() => void stats.refetch()} />
         <div className={s.middleGrid}><ActivityCard months={activity.data?.months} isLoading={activity.isLoading} isError={activity.isError} onRetry={() => void activity.refetch()} /><SavedBusinessesCard businesses={businesses.data?.businesses} isLoading={businesses.isLoading} isError={businesses.isError} onRetry={() => void businesses.refetch()} /></div>
         <LocationsTable projects={popular.data?.projects} isLoading={popular.isLoading} isError={popular.isError} onRetry={() => void popular.refetch()} />

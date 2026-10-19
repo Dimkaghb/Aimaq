@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/supabase/auth-context";
-import { useLocationIQStore } from "@/store/useLocationIQStore";
 import { DashboardIcon, type DashboardIconName } from "./DashboardIcon";
 import s from "../dashboard.module.css";
 
@@ -18,7 +17,6 @@ export function Sidebar({ userName }: { userName?: string }) {
   const pathname = usePathname();
   const { signOut, user } = useAuth();
   const router = useRouter();
-  const resetSearch = useLocationIQStore((state) => state.resetSearch);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState(false);
   const name = userName || "Мой аккаунт";
@@ -39,7 +37,7 @@ export function Sidebar({ userName }: { userName?: string }) {
       const active = link.href === "/dashboard" ? pathname === link.href : pathname.startsWith(link.href);
       return <Link key={link.href} href={link.href} aria-label={link.label} aria-current={active ? "page" : undefined} className={active ? s.activeNav : ""}><DashboardIcon name={link.icon} size={19} /><span>{link.label}</span>{active && <i />}</Link>;
     })}</nav>
-    <Link href="/app" onClick={resetSearch} className={s.sidebarNew}><DashboardIcon name="plus" size={18} /> Новый подбор</Link>
+    <Link href="/app" className={s.sidebarNew}><DashboardIcon name="plus" size={18} /> Новый подбор</Link>
     <div className={s.sidebarBottom}>
       <div className={s.sidebarNote}><span className={s.noteIllustration}><DashboardIcon name="pin" size={24} /></span><h3>У вашего дела<br />есть своё место.</h3><p>Сравните районы и найдите точку для следующего шага.</p><Link href="/app">Начать поиск <DashboardIcon name="arrow" size={16} /></Link></div>
       <Link href="/#questions" className={s.helpLink}><DashboardIcon name="help" size={18} /> Как работает Aimaq <DashboardIcon name="external" size={13} /></Link>

@@ -77,31 +77,6 @@ export default function AppPage() {
   return (
     <>
       <style>{`
-        .leaflet-control-attribution {
-          font-size: 10px !important;
-          background: rgba(255,255,255,0.7) !important;
-          padding: 2px 6px !important;
-        }
-        .liq-marker {
-          width: 36px; height: 36px;
-          border-radius: 50%;
-          background-color: var(--marker-color, #16a34a);
-          border: 2.5px solid rgba(255,255,255,0.9);
-          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-          display: flex; align-items: center; justify-content: center;
-          color: white; font-weight: 700; font-size: 13px;
-          font-family: var(--font-landing-haffer), sans-serif;
-          transition: transform 0.15s ease; cursor: pointer;
-        }
-        .liq-marker:hover { transform: scale(1.1); }
-        .liq-marker--active {
-          transform: scale(1.12); outline: 6px solid #a9d6e566;
-        }
-        @keyframes liq-pulse {
-          0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
-          70%  { box-shadow: 0 0 0 10px rgba(22,163,74,0); }
-          100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
-        }
         .pipeline-spinner {
           animation: spin 0.8s linear infinite;
         }

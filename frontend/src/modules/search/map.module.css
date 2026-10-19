@@ -1,0 +1,69 @@
+/* Map overlays (layer picker, legend, pins, popups, zoom, banner) in the results page's style:
+   Haffer, white cards with hairlines, soft shadows, powder-blue accents. */
+
+.map { --ink:#263b40; --muted:#77888b; --line:#e1e8e9; --accent:#56899a; position:relative; width:100%; height:100%; font-family:inherit; color:var(--ink); }
+.map :global(.leaflet-container) { font-family:inherit; background:#eef2f1; }
+/* Mute the standard OSM tiles (they are colourful enough to hide a heatmap): keep the street
+   structure, drop most of the saturation. Only the tile pane is filtered, never the overlays. */
+.map :global(.leaflet-tile-pane) { filter:grayscale(.8) saturate(.7) contrast(.9) brightness(1.06); }
+
+/* ── Layer picker ─────────────────────────────────────────────────── */
+.panel { position:absolute; top:14px; right:14px; z-index:1000; width:208px; background:#ffffffee; backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:10px; box-shadow:0 6px 20px #2c4e5914; padding:6px; }
+.panelTitle { margin:0; padding:7px 8px 6px; font-size:10px; letter-spacing:.09em; color:#8a9ca2; text-transform:uppercase; }
+.layerButton { display:flex; align-items:center; gap:10px; width:100%; padding:8px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--ink); font-size:13px; text-align:left; cursor:pointer; transition:background .15s, border-color .15s; }
+.layerButton:hover { background:#f3f7f8; }
+.layerButton:disabled { cursor:progress; }
+.layerButton[aria-pressed="true"] { background:var(--tint); border-color:color-mix(in srgb, var(--color) 28%, white); }
+.layerIcon { display:grid; place-items:center; width:26px; height:26px; flex-shrink:0; border-radius:6px; background:#eef3f4; color:#6f8a92; transition:background .15s, color .15s; }
+.layerButton[aria-pressed="true"] .layerIcon { background:var(--color); color:#fff; }
+.layerName { flex:1; }
+.switch { width:26px; height:15px; flex-shrink:0; border-radius:8px; background:#d8e2e4; position:relative; transition:background .15s; }
+.switch::after { content:""; position:absolute; top:2px; left:2px; width:11px; height:11px; border-radius:50%; background:#fff; box-shadow:0 1px 2px #0003; transition:transform .15s; }
+.layerButton[aria-pressed="true"] .switch { background:var(--color); }
+.layerButton[aria-pressed="true"] .switch::after { transform:translateX(11px); }
+.spinner { width:12px; height:12px; flex-shrink:0; border-radius:50%; border:1.5px solid #d3dfe2; border-top-color:var(--color); animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.legend { margin:6px 2px 2px; padding:10px 8px 6px; border-top:1px solid #edf1f2; }
+.legendTitle { margin:0 0 7px; font-size:11px; line-height:1.4; color:var(--ink); }
+.legendBar { height:8px; border-radius:4px; }
+.legendScale { display:flex; justify-content:space-between; margin-top:5px; font-size:10px; color:#8a9ca2; }
+.legendMeta { margin:8px 0 0; font-size:10px; color:#9aabb1; line-height:1.5; }
+.status { margin:6px 2px 2px; padding:10px 8px 6px; border-top:1px solid #edf1f2; font-size:11px; line-height:1.5; color:#6c828a; }
+.retry { margin-top:8px; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--accent); font-size:11px; cursor:pointer; }
+.retry:hover { background:#f3f7f8; }
+
+/* ── Stale-search banner ──────────────────────────────────────────── */
+.banner { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:1000; display:flex; align-items:center; gap:12px; padding:8px 8px 8px 14px; background:#ffffffee; backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:10px; box-shadow:0 6px 20px #2c4e5914; font-size:12px; white-space:nowrap; }
+.bannerButton { padding:6px 11px; border:0; border-radius:6px; background:#a9d6e5; color:#1e424e; font-size:12px; cursor:pointer; }
+.bannerButton:hover { background:#95c9db; }
+
+/* ── Numbered listing pins (created by Leaflet as raw HTML, hence module classes) ── */
+.pin { position:relative; display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--c); border:3px solid #fff; box-shadow:0 3px 10px #1f3a4433; color:#fff; font-size:13px; font-weight:600; line-height:1; transition:transform .15s, box-shadow .15s; }
+.pin:hover { transform:scale(1.1); }
+.pinActive { transform:scale(1.18); box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--c), 0 6px 16px #1f3a4440; z-index:2; }
+.pinActive::after { content:""; position:absolute; inset:-9px; border-radius:50%; border:2px solid var(--c); opacity:0; animation:pulse 1.8s ease-out infinite; }
+@keyframes pulse { 0% { transform:scale(.7); opacity:.55; } 100% { transform:scale(1.25); opacity:0; } }
+
+/* ── Popups ───────────────────────────────────────────────────────── */
+.map :global(.leaflet-popup-content-wrapper) { border-radius:9px; border:1px solid var(--line); box-shadow:0 8px 24px #2c4e5922; padding:0; color:var(--ink); }
+.map :global(.leaflet-popup-content) { margin:0; font-family:inherit; }
+.map :global(.leaflet-popup-tip) { box-shadow:none; border:1px solid var(--line); }
+.popup { min-width:150px; max-width:230px; padding:11px 13px; }
+.popupTitle { margin:0; font-size:13px; font-weight:500; line-height:1.35; }
+.popupRow { display:flex; align-items:center; gap:7px; margin:6px 0 0; font-size:11px; color:var(--muted); }
+.popupDot { width:8px; height:8px; flex-shrink:0; border-radius:50%; background:var(--c); }
+.popupStrong { color:var(--ink); font-weight:600; }
+
+/* ── Zoom + attribution ───────────────────────────────────────────── */
+.map :global(.leaflet-bar) { border:1px solid var(--line); border-radius:9px; overflow:hidden; box-shadow:0 6px 20px #2c4e5914; }
+.map :global(.leaflet-bar a) { width:32px; height:32px; line-height:32px; border:0; border-bottom:1px solid #edf1f2; background:#ffffffee; color:var(--ink); font-family:inherit; }
+.map :global(.leaflet-bar a:last-child) { border-bottom:0; }
+.map :global(.leaflet-bar a:hover) { background:#f3f7f8; color:var(--accent); }
+.map :global(.leaflet-control-attribution) { background:#ffffffcc; color:#8a9ca2; font-size:9px; border-radius:6px 0 0 0; }
+.map :global(.leaflet-control-attribution a) { color:#6f8a92; }
+
+@media (max-width:800px) {
+  .panel { top:10px; right:10px; width:188px; }
+  .banner { top:auto; bottom:64px; }
+}

@@ -7,76 +7,25 @@ import "leaflet.heat";
 
 import type { HeatmapPoint } from "@/lib/api";
 import type { HeatmapLayer as HeatmapLayerType } from "@/lib/api";
+import { LAYER_THEME } from "@/lib/map-theme";
+import m from "@/modules/search/map.module.css";
 
 // ── Per-layer visual config ─────────────────────────────────────────────────
 
 interface LayerConfig {
   baseRadius: number;
   baseBlur: number;
-  max: number;
   minOpacity: number;
-  gradient: Record<number, string>;
-  /** Label shown in click popup */
+  /** Label shown in the click popup */
   popupLabel: string;
-  /** Unit for the intensity readout */
-  popupUnit: string;
 }
 
+// Sparse layers (a few dozen bus stops) need a wider footprint than dense ones (hundreds of
+// shops), or they read as isolated dots instead of coverage. Colours come from LAYER_THEME.
 const LAYER_CONFIG: Record<HeatmapLayerType, LayerConfig> = {
-  transit: {
-    baseRadius: 14,
-    baseBlur: 18,
-    max: 1.0,
-    minOpacity: 0.04,
-    gradient: {
-      0.0: "rgba(59,130,246,0)",
-      0.15: "rgba(96,165,250,0.1)",
-      0.3: "rgba(59,130,246,0.2)",
-      0.45: "rgba(37,99,235,0.35)",
-      0.6: "rgba(29,78,216,0.48)",
-      0.75: "rgba(30,64,175,0.6)",
-      0.9: "rgba(30,58,138,0.72)",
-      1.0: "rgba(23,37,84,0.82)",
-    },
-    popupLabel: "Остановок рядом",
-    popupUnit: "",
-  },
-  footfall: {
-    baseRadius: 16,
-    baseBlur: 22,
-    max: 1.0,
-    minOpacity: 0.04,
-    gradient: {
-      0.0: "rgba(13,148,136,0)",
-      0.15: "rgba(45,212,191,0.08)",
-      0.3: "rgba(13,148,136,0.18)",
-      0.45: "rgba(15,118,110,0.3)",
-      0.6: "rgba(17,94,89,0.42)",
-      0.75: "rgba(19,78,74,0.55)",
-      0.9: "rgba(6,95,70,0.68)",
-      1.0: "rgba(4,47,46,0.78)",
-    },
-    popupLabel: "Индекс трафика",
-    popupUnit: "%",
-  },
-  competitors: {
-    baseRadius: 15,
-    baseBlur: 20,
-    max: 1.0,
-    minOpacity: 0.04,
-    gradient: {
-      0.0: "rgba(201,80,46,0)",
-      0.15: "rgba(251,146,60,0.08)",
-      0.3: "rgba(234,88,12,0.18)",
-      0.45: "rgba(220,38,38,0.3)",
-      0.6: "rgba(185,28,28,0.42)",
-      0.75: "rgba(153,27,27,0.55)",
-      0.9: "rgba(127,29,29,0.68)",
-      1.0: "rgba(69,10,10,0.78)",
-    },
-    popupLabel: "Конкурентов",
-    popupUnit: "",
-  },
+  transit: { baseRadius: 40, baseBlur: 26, minOpacity: 0.38, popupLabel: "Остановок рядом" },
+  footfall: { baseRadius: 20, baseBlur: 20, minOpacity: 0.25, popupLabel: "Мест притяжения рядом" },
+  competitors: { baseRadius: 26, baseBlur: 20, minOpacity: 0.3, popupLabel: "Конкурентов рядом" },
 };
 
 // Reference zoom level for radius scaling
@@ -149,16 +98,8 @@ export function HeatmapOverlay({ points, layer }: HeatmapLayerProps) {
       const searchRadius = Math.max(100, 800 / Math.pow(1.5, zoom - 12));
 
       let nearby = 0;
-      let totalIntensity = 0;
-      let maxIntensity = 0;
-
       for (const p of points) {
-        const d = haversineM(lat, lng, p.lat, p.lng);
-        if (d <= searchRadius) {
-          nearby++;
-          totalIntensity += p.intensity;
-          if (p.intensity > maxIntensity) maxIntensity = p.intensity;
-        }
+        if (haversineM(lat, lng, p.lat, p.lng) <= searchRadius) nearby++;
       }
 
       if (nearby === 0) {
@@ -170,36 +111,15 @@ export function HeatmapOverlay({ points, layer }: HeatmapLayerProps) {
       }
 
       const cfg = LAYER_CONFIG[layer];
-      const avg = totalIntensity / nearby;
-      const pct = Math.round(avg * 100);
+      const theme = LAYER_THEME[layer];
 
-      let detail = "";
-      if (layer === "transit") {
-        detail = `<strong>${nearby}</strong> ${cfg.popupLabel}`;
-      } else if (layer === "footfall") {
-        detail = `${cfg.popupLabel}: <strong>${pct}${cfg.popupUnit}</strong>`;
-      } else {
-        detail = `${cfg.popupLabel}: <strong>${nearby}</strong>`;
-      }
-
-      const levelLabel =
-        pct >= 70 ? "Высокий" : pct >= 40 ? "Средний" : "Низкий";
-      const levelColor =
-        pct >= 70
-          ? "var(--accent-orange)"
-          : pct >= 40
-            ? "var(--accent-yellow)"
-            : "var(--accent-green)";
-
+      // How busy this spot is against the busiest spot on the map, by points nearby.
+      const level = nearby >= 6 ? "Высокая" : nearby >= 3 ? "Средняя" : "Низкая";
       const html = `
-        <div style="font-family:var(--font-plus-jakarta),sans-serif;min-width:140px;padding:2px 0">
-          <p style="font-size:13px;margin:0 0 6px;color:var(--neutral-30)">${detail}</p>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="width:8px;height:8px;border-radius:50%;background:${levelColor};flex-shrink:0"></span>
-            <span style="font-size:12px;color:var(--neutral-10)">${levelLabel}</span>
-          </div>
-        </div>
-      `;
+        <div class="${m.popup}" style="--c:${theme.color}">
+          <p class="${m.popupTitle}">${cfg.popupLabel}: ${nearby}</p>
+          <p class="${m.popupRow}"><span class="${m.popupDot}"></span>${level} плотность</p>
+        </div>`;
 
       if (popupRef.current) {
         map.closePopup(popupRef.current);
@@ -208,7 +128,6 @@ export function HeatmapOverlay({ points, layer }: HeatmapLayerProps) {
       const popup = L.popup({
         closeButton: false,
         offset: [0, -4],
-        className: "liq-heatmap-popup",
       })
         .setLatLng(e.latlng)
         .setContent(html)
@@ -244,10 +163,10 @@ export function HeatmapOverlay({ points, layer }: HeatmapLayerProps) {
     const heat = L.heatLayer(latlngs, {
       radius: scaledRadius(cfg.baseRadius, zoom),
       blur: scaledBlur(cfg.baseBlur, zoom),
-      max: cfg.max,
+      max: 1.0,
       maxZoom: 18,
       minOpacity: cfg.minOpacity,
-      gradient: cfg.gradient,
+      gradient: LAYER_THEME[layer].gradient,
     });
 
     heat.addTo(map);

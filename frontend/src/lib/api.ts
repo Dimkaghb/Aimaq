@@ -108,10 +108,17 @@ export interface HeatmapPoint {
   intensity: number;
 }
 
+export interface HeatmapMeta {
+  /** What the points are, e.g. "Кафе и рестораны" (competitors follow the business type). */
+  label: string;
+  source: string;
+}
+
 export interface HeatmapResponse {
   layer: string;
   count: number;
   points: HeatmapPoint[];
+  meta?: HeatmapMeta;
 }
 
 export async function fetchHeatmap(
